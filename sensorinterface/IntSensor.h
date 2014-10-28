@@ -1,7 +1,7 @@
 #ifndef INTSENSOR_H_
 #define INTSENSOR_H_
 
-class IntSensor {
+class IntSensor : public Sensor {
 public:
     void GetData();
     virtual void Init() = 0;
