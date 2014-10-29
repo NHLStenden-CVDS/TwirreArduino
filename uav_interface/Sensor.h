@@ -9,7 +9,7 @@ public:
 
 protected:
     int _id;
-    std::string _name;
+    const char* _name;
     int _pin;
 
 };

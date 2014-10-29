@@ -2,10 +2,10 @@
 
 int Sonar::GetValue()
 {
-    
+    return 1;
 }
 
-int Sonar::Init()
+void Sonar::Init()
 {
 
 }

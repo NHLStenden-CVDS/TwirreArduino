@@ -1,6 +1,8 @@
 #ifndef INTSENSOR_H_
 #define INTSENSOR_H_
 
+#include "Sensor.h"
+
 class IntSensor : public Sensor {
 public:
     void GetData();
@@ -9,7 +11,7 @@ public:
 
     virtual int GetValue() = 0;
 
-private:
+//private:
     int _value;
 
 };
