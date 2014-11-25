@@ -3,15 +3,13 @@
 
 class Sensor {
 public:
-    virtual void GetData() = 0;
-    virtual void Init() = 0;
-    virtual void Update() = 0;
+    Sensor(std::string name);
+    virtual uint16_t Output(uint8_t nrParam, char* param, char* data) = 0;
+    virtual void InitializeSensor() = 0;
+    virtual void UpdateSensor() = 0;
 
-protected:
-    int _id;
-    const char* _name;
-    int _pin;
-
+    std::string sensorName;
+    std::string outputFormat;
 };
 
 #endif
