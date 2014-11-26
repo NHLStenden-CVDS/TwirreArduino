@@ -1,12 +1,11 @@
 #include "RequestHandler.h"
 
-RequestHandler()
+RequestHandler(Stream* stream)
 {
     _currentMessage = 0;
     _messagesToSend = 0;
 
-    //Initialize Serial communication
-    _serial;
+    _stream = stream;
 }
 
 virtual ~RequestHandler(){}
@@ -15,14 +14,10 @@ void RequestHandler::SendAndReceive()
 {
 	if (_messagesToSend)
 	{
-		_SendMessage(_messageQueue[_currentMessage]);
-		delete _messageStringQueue[_currentMessage];
-		_messagesToSend--;
-		_currentMessage++;
-		if(_currentMessage == MAX_NR_MESSAGES)
-			_currentMessage = 0;
+		//If a previous request had a long message, we still handle the remaining messages
+		_SendNextMessage();
 	}
-	else if (_serial.available())
+	else if (_stream.available())
 	{
 		_HandleRequest();
 	}
@@ -30,48 +25,65 @@ void RequestHandler::SendAndReceive()
 
 void RequestHandler::_HandleRequest()
 {
-    uint8_t opcode;
-    //read the first byte
-    char* buffer;
+    char opcode = _ReadOpcode();
     switch(opCode)
     {
         case 'P':
             //send a one-byte message with a 'P' back
-            buffer = new buffer[1];
-            buffer[1] = 'P';
-            _SendMessage(buffer, 1);
+            char buffer = 'P';
+            _AddToQueue(&buffer, 1);
             break;
         default:
             break;
     }
+    
+    //A request will always have a response:
+    _SendNextMessage();
 }
 
-void RequestHandler::_AddToQueue(char* header, uint16_t headerSize, char* data, uint16_t dataSize)
+void RequestHandler::_AddToQueue(char* buffer, uint16_t bufferSize)
 {
-    //If the total ammount of messages fit in the queue, we will put them there
-    uint16_t nrMessages = size / MSG_MAX_SIZE + 1;
-    if(nrMessages <= MAX_NR_MESSAGES - _messagesToSend)
+	//Calculate in how many messages the buffer has to be fitted
+    uint16_t nrOfMessages = bufferSize / (MSG_MAX_SIZE + 1) + 1;
+
+    //If the total ammount of messages don't fit in the queue, we put an error message in the queue
+	if(nrOfMessages > MAX_NR_MESSAGES)
+	{
+		_messageQueue[0] = new char[1];
+		_messageQueue[0] = 'E';
+	}
+	//else we split the buffer into nrOfMessages messages
+    else
     {
-		for (uint16_t i = 0; i < nrMessages; i++)
-            //Create message
-            char*
-
-            //Add message string to the queue
-            uint8_t nextMessage = _currentMessage + _messagesToSend;
-            if (nextMessage >= MAX_NR_MESSAGES)
-                nextMessage -= MAX_NR_MESSAGES;
-            uint8_t* mdata;
-            m.GetString(mdata);
-            _messageStringQueue[nextMessage] = mdata;
-
-            dataSizeLeft -= messageDataSize;
+		uint16_t lastMessageSize = buffersize % MSG_MAX_SIZE;
+		
+		//_messageQueue will always be empty at this point
+		_currentMessage = 0;
+		
+		for (uint16_t i = 0; i < nrOfMessages; i++)
+		{
+            uint16_t size = (i == nrOfMessages - 1) ? lastMessageSize : MSG_MAX_SIZE;
+            _messageQueue[i].buffer = new char[size];
+            
+            // Copying the bytes of the current message from the buffer.
+			memcpy(_messageQueue[i].buffer, _buffer + i * MSG_MAX_SIZE, size);
+			_messageQueue[i].size = size;
+			_messagesToSend++;
         }
     }
 }
 
-void RequestHandler::_SendMessage(uint8_t* buffer, uint16_t size)
+inline char RequestHandler::_ReadOpcode()
 {
-    //TODO: whole function ;)
-    //would it be better to store the message size in another buffer
-    //so we don't have to get it from the string???
+	char opcode;
+	_stream.readBytes(opcode, 1);
+	return opcode;
+}
+
+inline void RequestHandler::_SendNextMessage()
+{
+	_stream.write(_messageQueue[_currentMessage].buffer, _messageQueue[_currentMessage].size);
+	delete message.buffer;
+	_messagesToSend--;
+	_currentMessage++;
 }

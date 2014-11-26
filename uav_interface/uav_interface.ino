@@ -6,6 +6,7 @@ void setup()
 {
     Serial.begin(9600);
     sonar.Init();
+    RequestHandler(&Serial);
 }
 
 void loop()
