@@ -1,17 +1,26 @@
-#include "Sonar.h"
+#include "RequestHandler.h"
+#include "Sensor42.h"
 
-Sonar sonar;
+RequestHandler* requestHandler;
+
+Sensor42 sensor42("sensor42");
+
+SensorList sensorList(1);
 
 void setup()
 {
-    Serial.begin(9600);
-    sonar.Init();
-    RequestHandler(&Serial);
+    Serial.begin(115200);
+    Stream* ser = &Serial;
+    
+    sensorList.elements[0] = &sensor42;
+    
+    requestHandler = new RequestHandler(&sensorList, ser);
+    
+    sensor42.InitializeSensor();
 }
 
 void loop()
 {
-    sonar.Update();
-    Serial.print(sonar._value);
-    Serial.print("\n");
+  requestHandler->SendAndReceive();
+  sensor42.UpdateSensor();
 } 

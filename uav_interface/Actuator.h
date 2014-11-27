@@ -1,7 +1,8 @@
-#ifndef ACTUATOR_H_
+/*#ifndef ACTUATOR_H_
 #define ACTUATOR_H_
 
-class Actuator {
+class Actuator
+{
 public:
     Actuator(std::string name);
     virtual uint16_t Input(uint8_t nrParam, char* paramData) = 0;
@@ -10,6 +11,7 @@ public:
 
     std::string actuatorName;
     std::string inputFormat;
+    std::string actuatorDescription;
 };
 
-#endif
+#endif*/
