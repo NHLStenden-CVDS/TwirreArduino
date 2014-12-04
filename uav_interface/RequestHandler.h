@@ -9,14 +9,14 @@
 
 struct Message
 {
-	std::unique_ptr<char> buffer;
-	uint16_t size;
+    std::unique_ptr<char> buffer;
+    uint16_t size;
 };
 	
 struct Payload
 {
-	std::unique_ptr<char> buffer;
-	uint8_t size;
+    std::unique_ptr<char> buffer;
+    uint8_t size;
 };
 
 
@@ -31,9 +31,9 @@ private:
     char* incommingBuffer;
 
     void _HandleRequest();
-    void _AddToQueue(char* buffer, uint16_t bufferSize);
+    void _AddToQueue(char opcode, char* buffer, uint16_t bufferSize);
     void _SendNextMessage();
-    void _Error(char* errorMessage);
+    inline void _Error(char* errorMessage);
     inline char _ReadOpcode();
     inline uint8_t _ReadSensorID();
     Payload _ReadPayload();
@@ -41,9 +41,9 @@ private:
     uint16_t _currentMessage;
     uint16_t _messagesToSend;
     
-	SensorList* _sensorList;
+    SensorList* _sensorList;
     
-	Message _messageQueue[MAX_NR_MESSAGES];
+    Message _messageQueue[MAX_NR_MESSAGES];
     Stream* _stream;
 };
 

@@ -7,7 +7,7 @@ class Sensor42 : public Sensor
 {
 public:
     Sensor42(char* name);
-    SensorData Output(uint8_t payloadSize, char* payload);
+    SensorData Output(Payload payload);
     void InitializeSensor();
     void UpdateSensor();
     

@@ -30,11 +30,12 @@ void RequestHandler::_HandleRequest()
     char opCode = _ReadOpcode();
     switch(opCode)
     {
+        //All the cases should add a message to the queue!
         case 'P':
         {
             //send a one-byte message with a 'P' back
             char buffer = 'P';
-            _AddToQueue(&buffer, 1);
+            _AddToQueue('P', nullptr, 0);
             break;
         }
         case 'S':
@@ -43,8 +44,15 @@ void RequestHandler::_HandleRequest()
           if (sensorID < _sensorList->length)
           {
             Payload payload = _ReadPayload();
-            SensorData sensorData = _sensorList->elements[sensorID]->Output(payload.size, payload.buffer.get());
-            _AddToQueue(sensorData.data.get(), sensorData.size);
+            //for all params
+            //read param
+            //sensor.getParam(param)
+            
+            //send all back to the mainboard
+            
+            
+            SensorData sensorData = _sensorList->elements[sensorID]->Output();
+            _AddToQueue('O', sensorData.data.get(), sensorData.size);
           }
           else
           {
@@ -53,41 +61,52 @@ void RequestHandler::_HandleRequest()
           break;
         }
         default :
-          _Error("Unsupported operation code");
+          _Error("Unsupported operation code.");
     }
     
     //A request will always have a response:
     _SendNextMessage();
 }
 
-void RequestHandler::_AddToQueue(char* buffer, uint16_t bufferSize)
+void RequestHandler::_AddToQueue(char opcode, char* buffer, uint16_t bufferSize)
 {
-	//Calculate in how many messages the buffer has to be fitted
-    uint16_t nrOfMessages = bufferSize / (MSG_MAX_SIZE + 1) + 1;
+    //Calculate in how many messages the (opcode + buffer) has to be fitted. bufferSize + 1 because of the opcode. MSG_MAX_SIZE + 1 because we want 64/64 to be 0. +1 to make it one message. 
+    uint16_t nrOfMessages = (bufferSize + 1) / (MSG_MAX_SIZE + 1) + 1;
 
     //If the total ammount of messages don't fit in the queue, we put an error message in the queue
-	if(nrOfMessages > MAX_NR_MESSAGES)
-	{
-            _Error("Sensor data is too big.");
-	}
-	//else we split the buffer into nrOfMessages messages
+    if(nrOfMessages > MAX_NR_MESSAGES)
+    {
+      _Error("[_AddToQueue] The buffer is too big.");
+    }
+    //else we split the buffer into nrOfMessages messages
     else
     {
-		uint16_t lastMessageSize = bufferSize % MSG_MAX_SIZE;
+        //bufferSize + 1 because of the opcode, -1 because of the formula
+	uint16_t lastMessageSize = (bufferSize + 1) - ( (bufferSize + 1 - 1) / MSG_MAX_SIZE ) * MSG_MAX_SIZE;
+	
+	//_messageQueue will always be empty at this point
+	_currentMessage = 0;
 		
-		//_messageQueue will always be empty at this point
-		_currentMessage = 0;
-		
-		for (uint16_t i = 0; i < nrOfMessages; i++)
-		{
-            uint16_t size = (i == nrOfMessages - 1) ? lastMessageSize : MSG_MAX_SIZE;
-            char* messageBuffer = new char[size];
+	for (uint16_t i = 0; i < nrOfMessages; i++)
+	{
+            uint16_t messageSize = (i == nrOfMessages - 1) ? lastMessageSize : MSG_MAX_SIZE;
+            char* messageBuffer = new char[messageSize];
             // Copying the bytes of the current message from the buffer.
-			memcpy(messageBuffer, buffer + i * MSG_MAX_SIZE, size);
-			
-			_messageQueue[i].buffer = std::unique_ptr<char>(messageBuffer);
-			_messageQueue[i].size = size;
-			_messagesToSend++;
+            if(i == 0)
+            {
+              *messageBuffer = opcode;
+              if (bufferSize != 0)
+              {
+                memcpy(messageBuffer + 1, buffer, messageSize - 1);
+              }
+            }
+	    else
+            {
+              memcpy(messageBuffer, buffer + i * MSG_MAX_SIZE - 1, messageSize);
+            }	
+	   _messageQueue[i].buffer = std::unique_ptr<char>(messageBuffer);
+	   _messageQueue[i].size = messageSize;
+	   _messagesToSend++;
         }
     }
 }
@@ -135,12 +154,7 @@ void RequestHandler::_SendNextMessage()
         }
 }
 
-void RequestHandler::_Error(char* errorMessage)
+inline void RequestHandler::_Error(char* errorMessage)
 {
-  int messageLength = strlen(errorMessage);
-  char* buffer = new char[messageLength + 2]; //+2: 1 for the E and 1 for the NULL terminator character
-  *buffer = 'E';
-  memcpy(buffer + 1, errorMessage, messageLength + 1); //messageLength + 1 for the NULL terminator character
-  _AddToQueue(buffer, messageLength + 2);
-  delete buffer;
+  _AddToQueue('E', errorMessage, strlen(errorMessage) + 1); //messageLength + 1 for the NULL terminator character
 }
