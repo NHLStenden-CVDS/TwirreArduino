@@ -6,58 +6,62 @@
 
 class Sensor;
 
-struct SensorValue
-{
-    void* value = nullptr;
-    uint16_t size = 0;
-};
-
 struct SensorList
 {
-	Sensor** elements;
-	uint8_t length;
-	explicit SensorList(uint8_t len);
-	~SensorList();
+  Sensor** elements;
+  uint8_t length;
+  explicit SensorList(uint8_t len);
+  ~SensorList();
 };
 
 enum ValueType
 {
-    I8,
-    UI8,
-    I16,
-    UI16,
-    I32,
-    UI32,
-    I64,
-    UI64,
-    F,
-    D
+  I8,
+  UI8,
+  I16,
+  UI16,
+  I32,
+  UI32,
+  I64,
+  UI64,
+  F,
+  D
 }
 
 
 class Sensor
 {
 public:
-    Sensor(char* name);
-    virtual SensorData Output(Payload payload) = 0;
-    virtual void InitializeSensor() = 0;
-    virtual void UpdateSensor() = 0;
+  struct Data
+  {
+    void* data = nullptr;
+    uint16_t size = 0;
+  };
+
+  Sensor(char* name, char* description);
+  Data GetValue(uint8_t valueID);
+  char* GetOutputFormatString();
+  virtual void UpdateSensor() = 0;
+
+protected:
+  void _AddValue(char* valueName, uint16_t* value);
 
 private:
-    char* _sensorName;
-    char* _outputFormat;
-    char* _sensorDescription;
-    
-    void _AddValueToValueList(void* value, uint16_t valueSize);
-    
-    SensorValue* _valueList;
-    uint8_t _valueListSize;
-    
-protected:
-    void _AddValue();
+  struct Value
+  {
+    char* name;
+    void* value = nullptr;
+    ValueType type;
+  };
+
+  void _AddValueToValueList(char valueName, void* value, ValueType type);
+  uint16_t _GetValueTypeSize(ValueType type);
+
+  char* _sensorName;
+  char* _sensorDescription;
+
+  SensorValue* _valueList;
+  uint8_t _valueListSize;
 };
-	
 
-
-	
 #endif
