@@ -91,7 +91,7 @@ void RequestHandler::_HandleRequest()
               if(valueID < nrOfValues)
               {
                 Sensor::Data sensorData = _sensorList->elements[sensorID]->GetValue(valueID); //let's do the first one for now
-                _AddToQueue('O', sensorData.data, sensorData.size);
+                _AddToQueue('O', sensorData.data, sensorData.elementSize*sensorData.numberOfElements);
               }
               else
               {
@@ -175,20 +175,25 @@ inline char RequestHandler::_ReadOpcode()
 bool RequestHandler::_ReadPayload(Payload &payload)
 {
   bool everythingAllright = true;
-  _stream->readBytes(&payload.size, 1);
-  char* buffer;
-  #ifdef DEBUG
-    payload.size -= 48; //char to int8: '1' -> 1
-  #endif
-  if (payload.size == 0)
+  char* buffer = nullptr;
+  payload.size = 0;
+  uint8_t receivedPayloadSize;
+  
+  if(everythingAllright = (_stream->readBytes(&payload.size, 1) == 1))
   {
-    buffer = nullptr;
-  }
-  else
-  {
-    buffer = new char[payload.size];
-    payload.size = _stream->readBytes(buffer, payload.size);
-    everythingAllright = false;
+    #ifdef DEBUG
+      payload.size -= 48; //char to int8: '1' -> 1
+    #endif
+    receivedPayloadSize = payload.size;
+    if (payload.size > 0)
+    {
+      buffer = new char[payload.size];
+      payload.size = _stream->readBytes(buffer, payload.size);
+      if(payload.size < receivedPayloadSize)
+      {
+        everythingAllright = false;
+      }
+    }
   }
   payload.buffer = std::unique_ptr<char>(buffer);
   return everythingAllright;

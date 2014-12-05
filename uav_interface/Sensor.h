@@ -34,7 +34,8 @@ public:
   struct Data
   {
     void* data = nullptr;
-    uint16_t size = 0;
+    uint16_t elementSize = 0;
+    uint16_t numberOfElements = 0;
   };
 
   Sensor(char* name, char* description);

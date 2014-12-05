@@ -42,17 +42,21 @@ Sensor::Data Sensor::GetValue(uint8_t valueID)
   if(valueID < _valueListSize)
   {
     sensorData.data = _valueList[valueID].value;
-    uint16_t nrOfElements = 1; //1 in case it is not an array, which we check next
     if(_valueList[valueID].arraySize != nullptr)
     {
-      nrOfElements = *(_valueList[valueID].arraySize);
+      sensorData.numberOfElements = *(_valueList[valueID].arraySize);
     }
-    sensorData.size = _GetValueTypeSize(_valueList[valueID].type) * nrOfElements;
+    else
+    {
+      sensorData.numberOfElements = 1; //1 in case it is not an array, which we check next
+    }
+    sensorData.elementSize = _GetValueTypeSize(_valueList[valueID].type);
   }
   else
   {
     sensorData.data = nullptr;
-    sensorData.size = 0;
+    sensorData.elementSize = 0;
+    sensorData.numberOfElements = 0;
   }
   return sensorData;
 }
