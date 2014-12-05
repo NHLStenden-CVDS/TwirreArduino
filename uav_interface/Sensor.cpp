@@ -1,9 +1,12 @@
 #include "Sensor.h"
+#include <cstring>
+#include <cstdlib>
 
 SensorList::SensorList(uint8_t len)
 {
   length = len;
   elements = new Sensor*[length];
+  //TODO: change to vector, or make it in a way that length changes when adding an element
 }
 
 SensorList::~SensorList()
@@ -13,10 +16,10 @@ SensorList::~SensorList()
 
 Sensor::Sensor(char* name, char* description)
 {
-  _name = (char*)malloc(strlen(name)+1);//+1 for the NULL terminator
-  strcpy(_sensorName. name);
-  _description = (char*)malloc(strlen(description)+1);//+1 for the NULL terminator
-  strcpy(_sensorName. description);
+  _sensorName = (char*)malloc(strlen(name)+1);//+1 for the NULL terminator
+  strcpy(_sensorName, name);
+  _sensorDescription = (char*)malloc(strlen(description)+1);//+1 for the NULL terminator
+  strcpy(_sensorDescription, description);
 
   _valueListSize = 0;
   _valueList = nullptr;
@@ -24,8 +27,13 @@ Sensor::Sensor(char* name, char* description)
 
 Sensor::~Sensor()
 {
-  free(_name);
-  free(_description);
+  free(_sensorName);
+  free(_sensorDescription);
+}
+
+uint8_t Sensor::GetNumberOfValues()
+{
+  return _valueListSize;
 }
 
 Sensor::Data Sensor::GetValue(uint8_t valueID)
@@ -41,22 +49,27 @@ Sensor::Data Sensor::GetValue(uint8_t valueID)
     }
     sensorData.size = _GetValueTypeSize(_valueList[valueID].type) * nrOfElements;
   }
+  else
+  {
+    sensorData.data = nullptr;
+    sensorData.size = 0;
+  }
   return sensorData;
 }
 
 char* Sensor::GetSensorName()
 {
-  return _name;
+  return _sensorName;
 }
 
 char* Sensor::GetSensorDescription()
 {
-  return _description;
+  return _sensorDescription;
 }
 
 char* Sensor::GetOutputFormatString()
 {
-  char* outputFormat = nullptr;
+  char* outputFormat;
   uint16_t outputFormatLength = 0; 
   for(uint16_t i=0; i < _valueListSize; ++i)
   {
@@ -76,34 +89,34 @@ char* Sensor::GetOutputFormatString()
       switch (_valueList[i].type)
       {
         case ValueType::I8:
-          typeString = "I8";
+          strcpy(typeString, "I8");
           break;
         case ValueType::UI8:
-          typeString = "UI8";
+          strcpy(typeString, "UI8");
           break;
         case ValueType::I16:
-          typeString = "I16";
+          strcpy(typeString, "I16");
           break;
         case ValueType::UI16:
-          typeString = "UI16";
+          strcpy(typeString, "UI16");
           break;
         case ValueType::I32:
-          typeString = "I32";
+          strcpy(typeString, "I32");
           break;
         case ValueType::UI32:
-          typeString = "UI32";
+          strcpy(typeString, "UI32");
           break;
         case ValueType::I64:
-          typeString = "I64";
+          strcpy(typeString, "I64");
           break;
         case ValueType::UI64:
-          typeString = "UI64";
+          strcpy(typeString, "UI64");
           break;
         case ValueType::F:
-          typeString = "F";
+          strcpy(typeString, "F");
           break;
         case ValueType::D:
-          typeString = "D";
+          strcpy(typeString, "D");
           break;
       }
       if(i>0)
@@ -114,7 +127,7 @@ char* Sensor::GetOutputFormatString()
       strcat(outputFormat, _valueList[i].name);
       strcat(outputFormat, "=");
       //if it is an array, we will put A: in front of the type, resulting to A:I8 for example
-      if(_valueList[i].arraySize == nullptr)
+      if(_valueList[i].arraySize != nullptr)
       {
         strcat(outputFormat, "A:");
       }
@@ -131,25 +144,24 @@ char* Sensor::GetOutputFormatString()
   return outputFormat;
 }
 
-void Sensor::_AddValueToValueList(char* valueName, void* value, ValueType type, uint16_t* arraySize=nullptr);
+void Sensor::_AddValueToValueList(char* valueName, void* value, ValueType type, uint16_t* arraySize)
 {
   //make the list longer allocating memory for the new SensorValue
   _valueListSize++;
-  SensorValue* _valueList = (SensorValue*)realloc(_valueList, sizeof(SensorValue));
+  _valueList = (Value*)realloc(_valueList, _valueListSize*sizeof(Value));
   
   //reserve space for the length of the string + NULL terminator
   _valueList[_valueListSize - 1].name = (char*)malloc(strlen(valueName) + 1);
-  
   //copy the name
-  strcpy
+  strcpy(_valueList[_valueListSize - 1].name, valueName);
   
   //store the pointer to the value
   _valueList[_valueListSize - 1].value = value;
   
-  //store the size of the value in bytes
+  //store the type of the value
   _valueList[_valueListSize - 1].type = type;
   
-  //store the pointer to the variable that determines the number of elements. If it is not an array this has to point to NULL
+  //store the pointer to the variable that determines the number of elements. If it is not an array this has to be a nullptr
   _valueList[_valueListSize - 1].arraySize = arraySize;
 }
 
@@ -174,11 +186,57 @@ uint16_t Sensor::_GetValueTypeSize(ValueType type)
   }
 }
 
+
 /*
  * Different AddValue functions for the different types
  */
  
-void Sensor::_AddValue(char* valueName, uint16_t* value, uint16_t* arraySize=nullptr);
+void Sensor::_AddValue(char* valueName, int8_t* value, uint16_t* arraySize)
+{
+  _AddValueToValueList(valueName, (void*) value, ValueType::I8, arraySize);
+}
+
+void Sensor::_AddValue(char* valueName, uint8_t* value, uint16_t* arraySize)
+{
+  _AddValueToValueList(valueName, (void*) value, ValueType::UI8, arraySize);
+}
+
+void Sensor::_AddValue(char* valueName, int16_t* value, uint16_t* arraySize)
+{
+  _AddValueToValueList(valueName, (void*) value, ValueType::I16, arraySize);
+}
+
+void Sensor::_AddValue(char* valueName, uint16_t* value, uint16_t* arraySize)
 {
   _AddValueToValueList(valueName, (void*) value, ValueType::UI16, arraySize);
+}
+
+void Sensor::_AddValue(char* valueName, int32_t* value, uint16_t* arraySize)
+{
+  _AddValueToValueList(valueName, (void*) value, ValueType::I32, arraySize);
+}
+
+void Sensor::_AddValue(char* valueName, uint32_t* value, uint16_t* arraySize)
+{
+  _AddValueToValueList(valueName, (void*) value, ValueType::UI32, arraySize);
+}
+
+void Sensor::_AddValue(char* valueName, int64_t* value, uint16_t* arraySize)
+{
+  _AddValueToValueList(valueName, (void*) value, ValueType::I64, arraySize);
+}
+
+void Sensor::_AddValue(char* valueName, uint64_t* value, uint16_t* arraySize)
+{
+  _AddValueToValueList(valueName, (void*) value, ValueType::UI64, arraySize);
+}
+
+void Sensor::_AddValue(char* valueName, float* value, uint16_t* arraySize)
+{
+  _AddValueToValueList(valueName, (void*) value, ValueType::F, arraySize);
+}
+
+void Sensor::_AddValue(char* valueName, double* value, uint16_t* arraySize)
+{
+  _AddValueToValueList(valueName, (void*) value, ValueType::D, arraySize);
 }

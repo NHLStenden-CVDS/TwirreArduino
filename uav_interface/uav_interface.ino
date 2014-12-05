@@ -15,8 +15,6 @@ void setup()
     sensorList.elements[0] = &sensor42;
     
     requestHandler = new RequestHandler(&sensorList, ser);
-    
-    sensor42.InitializeSensor();
 }
 
 void loop()

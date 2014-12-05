@@ -1,8 +1,7 @@
 #ifndef SENSOR_H_
 #define SENSOR_H_
 
-#include <memory>
-#include "RequestHandler.h"
+#include <cstdint>
 
 class Sensor;
 
@@ -26,7 +25,7 @@ enum ValueType
   UI64,
   F,
   D
-}
+};
 
 
 class Sensor
@@ -41,15 +40,24 @@ public:
   Sensor(char* name, char* description);
   virtual ~Sensor();
   Data GetValue(uint8_t valueID);
+  uint8_t GetNumberOfValues();
   char* GetSensorName();
   char* GetSensorDescription();
   char* GetOutputFormatString();
   virtual void UpdateSensor() = 0;
 
 protected:
-  void _AddValue(char* valueName, uint16_t* value);
-  //TODO: create all _AddValue for different types
-
+  void _AddValue(char* valueName, int8_t* value, uint16_t* arraySize=nullptr);
+  void _AddValue(char* valueName, uint8_t* value, uint16_t* arraySize=nullptr);
+  void _AddValue(char* valueName, int16_t* value, uint16_t* arraySize=nullptr);
+  void _AddValue(char* valueName, uint16_t* value, uint16_t* arraySize=nullptr);
+  void _AddValue(char* valueName, int32_t* value, uint16_t* arraySize=nullptr);
+  void _AddValue(char* valueName, uint32_t* value, uint16_t* arraySize=nullptr);
+  void _AddValue(char* valueName, int64_t* value, uint16_t* arraySize=nullptr);
+  void _AddValue(char* valueName, uint64_t* value, uint16_t* arraySize=nullptr);
+  void _AddValue(char* valueName, float* value, uint16_t* arraySize=nullptr);
+  void _AddValue(char* valueName, double* value, uint16_t* arraySize=nullptr);
+  
 private:
   struct Value
   {
@@ -65,7 +73,7 @@ private:
   char* _sensorName;
   char* _sensorDescription;
 
-  SensorValue* _valueList;
+  Value* _valueList;
   uint8_t _valueListSize;
 };
 

@@ -1,7 +1,7 @@
 #include "RequestHandler.h"
-#include "Sensor.h"
-#include <Stream.h>
 #include <cstring>
+
+#define DEBUG
 
 RequestHandler::RequestHandler(SensorList* sensorList, Stream* stream)
 {
@@ -32,56 +32,88 @@ void RequestHandler::_HandleRequest()
   {
       //All the cases should add a message to the queue!
     case 'P':
-      {
-        //send a one-byte message with a 'P' back
-        char buffer = 'P';
-        _AddToQueue('P', nullptr, 0);
-        break;
-      }
+    {
+      //send a one-byte message with a 'P' back
+      char buffer = 'P';
+      _AddToQueue('P', nullptr, 0);
+      break;
+    }
     case 'I':
-      //get sensor name, description and outputformat and put it like name|desc|format for every sensor. Separate these strings by ; and send it back.
+    {
+      //get every sensor's name, description and outputformat and put it like name|desc|format. Separate these strings by ; and send it.
       //Take care about memory (free) of the format but not the description or the name.
-      char* initializationString = (char*)malloc(1); //Initialize it with an empty string, we will use realloc to extend it later
-      *initializationString = NULL; //We set it as an empty string so we will be able to use strcat
+      char* initString = (char*)malloc(1); //Initialize it with an empty string, we will use realloc to extend it later
+      *initString = NULL; //We set it as an empty string so we will be able to use strcat
+      uint16_t initStringSize = 0;
       for(uint16_t i = 0; i < _sensorList->length; ++i)
       {
         //calculate size to extend the string for this sensor
         char* name = _sensorList->elements[i]->GetSensorName();
         char* description = _sensorList->elements[i]->GetSensorDescription();
         char* outputFormat = _sensorList->elements[i]->GetOutputFormatString();
-        uint16_t size = strlen(name) + strlen(description) + strlen(outputFormat) + 2 + 1; //+2 for | | and + 1 for the ; that separates two sensors in the string
+        initStringSize += strlen(name) + strlen(description) + strlen(outputFormat) + 2 + 1; //+2 for | | and + 1 for the ; that separates two sensors in the string
+        initString = (char*)realloc(initString, initStringSize + 1); //+1 for the Null terminator
         if(i>0)
         {
-          strcat(initializationString, ";"); //if it is not the first one, we will separate the sensors with a semicolon
+          strcat(initString, ";"); //if it is not the first one, we will separate the sensors with a semicolon
         }
-        strcat(initializationString, _sensorList->elements[i]->GetSensorName());
-        strcat(initializationString, "|");
-        strcat(initializationString, _sensorList->elements[i]->GetSensorDescription());
-        strcat(initializationString, "|");
-        strcat(initializationString, outputFormat);
+        strcat(initString, name);
+        strcat(initString, "|");
+        strcat(initString, description);
+        strcat(initString, "|");
+        strcat(initString, outputFormat);
         free(outputFormat); //we have to take care of this! not name or description because they are members of the Sensor class. The output string is generated when calling GetOutputFormatString().
       }
+      _AddToQueue('O', initString, strlen(initString) + 1); //+1 for the null terminator
       break;
+    }
     case 'S':
+    {
+      uint8_t sensorID = _ReadSensorID();
+      if(sensorID < _sensorList->length)
       {
-        uint8_t sensorID = _ReadSensorID();
-        if (sensorID < _sensorList->length)
+        Payload payload;
+        if(_ReadPayload(payload))
         {
-          Payload payload = _ReadPayload();
-          
-          /*for(uint8_t i = 0; i < payload.size; i++)
+          if(payload.size > 0)
           {
-            SensorData sensorData = _sensorList->elements[sensorID]->GetValue((uint8_t)payload.buffer[i]); //get the ith value
-          }*/
-          SensorData sensorData = _sensorList->elements[sensorID]->GetValue((uint8_t)payload.buffer[0]); //let's do the first one for now
-          _AddToQueue('O', sensorData.data, sensorData.size);
+            uint8_t nrOfValues = _sensorList->elements[sensorID]->GetNumberOfValues();
+            /*for(uint8_t i = 0; i < payload.size; i++)
+            {
+              SensorData sensorData = _sensorList->elements[sensorID]->GetValue((uint8_t)payload.buffer[i]); //get the ith value
+              .....
+              ....
+              ...*/
+              uint8_t valueID = (uint8_t)payload.buffer.get()[0];
+              #ifdef DEBUG
+                valueID -= 48; //char to int8: '1' -> 1
+              #endif
+              if(valueID < nrOfValues)
+              {
+                Sensor::Data sensorData = _sensorList->elements[sensorID]->GetValue(valueID); //let's do the first one for now
+                _AddToQueue('O', sensorData.data, sensorData.size);
+              }
+              else
+              {
+                _Error("Incorrect value ID for this sensor.");
+              }
+          }
+          else
+          {
+            _Error("Payload size is 0.");
+          }
         }
         else
         {
-          _Error("Incorrect sensor ID.");
+          _Error("Wrong payload size.");
         }
-        break;
       }
+      else
+      {
+        _Error("Incorrect sensor ID.");
+      }
+      break;
+    }
     default :
       _Error("Unsupported operation code.");
   }
@@ -90,7 +122,7 @@ void RequestHandler::_HandleRequest()
   _SendNextMessage();
 }
 
-void RequestHandler::_AddToQueue(char opcode, char* buffer, uint16_t bufferSize)
+void RequestHandler::_AddToQueue(char opcode, void* buffer, uint16_t bufferSize)
 {
   //Calculate in how many messages the (opcode + buffer) has to be fitted. bufferSize + 1 because of the opcode. MSG_MAX_SIZE + 1 because we want 64/64 to be 0. +1 to make it one message.
   uint16_t nrOfMessages = (bufferSize + 1) / (MSG_MAX_SIZE + 1) + 1;
@@ -140,12 +172,14 @@ inline char RequestHandler::_ReadOpcode()
   return opcode;
 }
 
-Payload RequestHandler::_ReadPayload()
+bool RequestHandler::_ReadPayload(Payload &payload)
 {
-  Payload payload;
+  bool everythingAllright = true;
   _stream->readBytes(&payload.size, 1);
   char* buffer;
-  payload.size -= 48;
+  #ifdef DEBUG
+    payload.size -= 48; //char to int8: '1' -> 1
+  #endif
   if (payload.size == 0)
   {
     buffer = nullptr;
@@ -153,17 +187,21 @@ Payload RequestHandler::_ReadPayload()
   else
   {
     buffer = new char[payload.size];
-    _stream->readBytes(buffer, payload.size);
+    payload.size = _stream->readBytes(buffer, payload.size);
+    everythingAllright = false;
   }
   payload.buffer = std::unique_ptr<char>(buffer);
-  return payload;
+  return everythingAllright;
 }
 
 inline uint8_t RequestHandler::_ReadSensorID()
 {
   uint8_t sensorID;
   _stream->readBytes(&sensorID, 1);
-  return sensorID - 48;
+  #ifdef DEBUG
+    sensorID -= 48;
+  #endif
+  return sensorID;
 }
 
 void RequestHandler::_SendNextMessage()
