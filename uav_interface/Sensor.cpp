@@ -11,13 +11,21 @@ SensorList::~SensorList()
   delete elements;
 }
 
-Sensor::Sensor(char* name)
+Sensor::Sensor(char* name, char* description)
 {
-  _sensorName = name;
+  _name = (char*)malloc(strlen(name)+1);//+1 for the NULL terminator
+  strcpy(_sensorName. name);
+  _description = (char*)malloc(strlen(description)+1);//+1 for the NULL terminator
+  strcpy(_sensorName. description);
 
-  _outputFormat = nullptr;
   _valueListSize = 0;
   _valueList = nullptr;
+}
+
+Sensor::~Sensor()
+{
+  free(_name);
+  free(_description);
 }
 
 Sensor::Data Sensor::GetValue(uint8_t valueID)
@@ -36,71 +44,90 @@ Sensor::Data Sensor::GetValue(uint8_t valueID)
   return sensorData;
 }
 
+char* Sensor::GetSensorName()
+{
+  return _name;
+}
+
+char* Sensor::GetSensorDescription()
+{
+  return _description;
+}
+
 char* Sensor::GetOutputFormatString()
 {
+  char* outputFormat = nullptr;
   uint16_t outputFormatLength = 0; 
   for(uint16_t i=0; i < _valueListSize; ++i)
   {
     outputFormatLength += strlen(_valueList[i].name) + 10; //+10 for the '=type,' it can result to 'name=A:UI64,'
   }
   
-  //create string for the outputformat. Its size depends on the number of values that the sensor has
-  char* outputFormat = (char*)malloc(outputFormatLength + 1); //+1 for the null terminator
-  outputFormat[0] = NULL; //We set it as an empty string so we will be able to use strcat
-  
-  //for every value we will have a type which will be of maximum 4 chars
-  char* typeString = (char*)malloc(5); //space for 4 chars + NULL terminator
-  for(uint16_t i=0; i < _valueListSize; ++i)
+  if(outputFormatLength > 0)
   {
-    switch (_valueList[i].type)
+    //create string for the outputformat. Its size depends on the number of values that the sensor has
+    outputFormat = (char*)malloc(outputFormatLength + 1); //+1 for the null terminator
+    outputFormat[0] = NULL; //We set it as an empty string so we will be able to use strcat
+    
+    //for every value we will have a type which will be of maximum 4 chars
+    char* typeString = (char*)malloc(5); //space for 4 chars + NULL terminator
+    for(uint16_t i=0; i < _valueListSize; ++i)
     {
-      case ValueType::I8:
-        typeString = "I8";
-        break;
-      case ValueType::UI8:
-        typeString = "UI8";
-        break;
-      case ValueType::I16:
-        typeString = "I16";
-        break;
-      case ValueType::UI16:
-        typeString = "UI16";
-        break;
-      case ValueType::I32:
-        typeString = "I32";
-        break;
-      case ValueType::UI32:
-        typeString = "UI32";
-        break;
-      case ValueType::I64:
-        typeString = "I64";
-        break;
-      case ValueType::UI64:
-        typeString = "UI64";
-        break;
-      case ValueType::F:
-        typeString = "F";
-        break;
-      case ValueType::D:
-        typeString = "D";
-        break;
+      switch (_valueList[i].type)
+      {
+        case ValueType::I8:
+          typeString = "I8";
+          break;
+        case ValueType::UI8:
+          typeString = "UI8";
+          break;
+        case ValueType::I16:
+          typeString = "I16";
+          break;
+        case ValueType::UI16:
+          typeString = "UI16";
+          break;
+        case ValueType::I32:
+          typeString = "I32";
+          break;
+        case ValueType::UI32:
+          typeString = "UI32";
+          break;
+        case ValueType::I64:
+          typeString = "I64";
+          break;
+        case ValueType::UI64:
+          typeString = "UI64";
+          break;
+        case ValueType::F:
+          typeString = "F";
+          break;
+        case ValueType::D:
+          typeString = "D";
+          break;
+      }
+      if(i>0)
+      {
+        //if it is not the first one, we should add a coma as a separation
+        strcat(outputFormat, ",");
+      }
+      strcat(outputFormat, _valueList[i].name);
+      strcat(outputFormat, "=");
+      //if it is an array, we will put A: in front of the type, resulting to A:I8 for example
+      if(_valueList[i].arraySize == nullptr)
+      {
+        strcat(outputFormat, "A:");
+      }
+      strcat(outputFormat, typeString);
     }
-    if(i>0)
-    {
-      //if it is not the first one, we should add a coma as a separation
-      strcat(outputFormat, ",");
-    }
-    strcat(outputFormat, _valueList[i].name);
-    strcat(outputFormat, "=");
-    //if it is an array, we will put A: in front of the type, resulting to A:I8 for example
-    if(_valueList[i].arraySize == nullptr)
-    {
-      strcat(outputFormat, "A:");
-    }
-    strcat(outputFormat, typeString);
+    free(typeString);
   }
-  free(typeString);
-  
+  else
+  {
+    //Empty string
+    outputFormat = (char*)malloc(1);
+    *outputFormat = NULL;
+  }
   return outputFormat;
 }
 

@@ -41,6 +41,26 @@ void RequestHandler::_HandleRequest()
     case 'I':
       //get sensor name, description and outputformat and put it like name|desc|format for every sensor. Separate these strings by ; and send it back.
       //Take care about memory (free) of the format but not the description or the name.
+      char* initializationString = (char*)malloc(1); //Initialize it with an empty string, we will use realloc to extend it later
+      *initializationString = NULL; //We set it as an empty string so we will be able to use strcat
+      for(uint16_t i = 0; i < _sensorList->length; ++i)
+      {
+        //calculate size to extend the string for this sensor
+        char* name = _sensorList->elements[i]->GetSensorName();
+        char* description = _sensorList->elements[i]->GetSensorDescription();
+        char* outputFormat = _sensorList->elements[i]->GetOutputFormatString();
+        uint16_t size = strlen(name) + strlen(description) + strlen(outputFormat) + 2 + 1; //+2 for | | and + 1 for the ; that separates two sensors in the string
+        if(i>0)
+        {
+          strcat(initializationString, ";"); //if it is not the first one, we will separate the sensors with a semicolon
+        }
+        strcat(initializationString, _sensorList->elements[i]->GetSensorName());
+        strcat(initializationString, "|");
+        strcat(initializationString, _sensorList->elements[i]->GetSensorDescription());
+        strcat(initializationString, "|");
+        strcat(initializationString, outputFormat);
+        free(outputFormat); //we have to take care of this! not name or description because they are members of the Sensor class. The output string is generated when calling GetOutputFormatString().
+      }
       break;
     case 'S':
       {

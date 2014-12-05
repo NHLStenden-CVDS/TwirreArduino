@@ -39,7 +39,10 @@ public:
   };
 
   Sensor(char* name, char* description);
+  virtual ~Sensor();
   Data GetValue(uint8_t valueID);
+  char* GetSensorName();
+  char* GetSensorDescription();
   char* GetOutputFormatString();
   virtual void UpdateSensor() = 0;
 
