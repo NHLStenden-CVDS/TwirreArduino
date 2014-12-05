@@ -104,8 +104,6 @@ char* Sensor::GetOutputFormatString()
   return outputFormat;
 }
 
-char* 
-
 void Sensor::_AddValueToValueList(char* valueName, void* value, ValueType type, uint16_t* arraySize=nullptr);
 {
   //make the list longer allocating memory for the new SensorValue

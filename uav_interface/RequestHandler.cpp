@@ -49,18 +49,12 @@ void RequestHandler::_HandleRequest()
         {
           Payload payload = _ReadPayload();
           
-          for(uint8_t i = 0; i < payload.size; i++)
+          /*for(uint8_t i = 0; i < payload.size; i++)
           {
-            GetValue((uint8_t)payload.buffer[i]); //get the ith value
-          }
-          //for all params
-          //read param
-          //sensor.getParam(param)
-
-          //send all back to the mainboard
-
-          SensorData sensorData = _sensorList->elements[sensorID]->Output();
-          _AddToQueue('O', sensorData.data.get(), sensorData.size);
+            SensorData sensorData = _sensorList->elements[sensorID]->GetValue((uint8_t)payload.buffer[i]); //get the ith value
+          }*/
+          SensorData sensorData = _sensorList->elements[sensorID]->GetValue((uint8_t)payload.buffer[0]); //let's do the first one for now
+          _AddToQueue('O', sensorData.data, sensorData.size);
         }
         else
         {
