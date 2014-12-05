@@ -45,16 +45,18 @@ public:
 
 protected:
   void _AddValue(char* valueName, uint16_t* value);
+  //TODO: create all _AddValue for different types
 
 private:
   struct Value
   {
-    char* name;
     void* value = nullptr;
+    uint16_t* arraySize = nullptr;
+    char* name;
     ValueType type;
   };
 
-  void _AddValueToValueList(char valueName, void* value, ValueType type);
+  void _AddValueToValueList(char* valueName, void* value, ValueType type, uint16_t* arraySize=nullptr);
   uint16_t _GetValueTypeSize(ValueType type);
 
   char* _sensorName;

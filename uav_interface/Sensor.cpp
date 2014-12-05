@@ -36,7 +36,7 @@ char* Sensor::GetOutputFormatString()
   uint16_t outputFormatLength = 0; 
   for(uint16_t i=0; i < _valueListSize; ++i)
   {
-    outputFormatLength += strlen(_valueList[i].name);
+    outputFormatLength += strlen(_valueList[i].name) + 10; //+10 for the '=type,' it can result to 'name=A:UI64,'
   }
   
   //create string for the outputformat. Its size depends on the number of values that the sensor has
@@ -87,6 +87,11 @@ char* Sensor::GetOutputFormatString()
     }
     strcat(outputFormat, _valueList[i].name);
     strcat(outputFormat, "=");
+    //if it is an array, we will put A: in front of the type, resulting to A:I8 for example
+    if(_valueList[i].arraySize == nullptr)
+    {
+      strcat(outputFormat, "A:");
+    }
     strcat(outputFormat, typeString);
   }
   free(typeString);
@@ -94,7 +99,9 @@ char* Sensor::GetOutputFormatString()
   return outputFormat;
 }
 
-void Sensor::_AddValueToValueList(char valueName, void* value, ValueType type);
+char* 
+
+void Sensor::_AddValueToValueList(char* valueName, void* value, ValueType type, uint16_t* arraySize=nullptr);
 {
   //make the list longer allocating memory for the new SensorValue
   _valueListSize++;
@@ -103,11 +110,17 @@ void Sensor::_AddValueToValueList(char valueName, void* value, ValueType type);
   //reserve space for the length of the string + NULL terminator
   _valueList[_valueListSize - 1].name = (char*)malloc(strlen(valueName) + 1);
   
-  //make the pointer of the struct refer to the actual value
+  //copy the name
+  strcpy
+  
+  //store the pointer to the value
   _valueList[_valueListSize - 1].value = value;
   
   //store the size of the value in bytes
-  _valueList[_valueListSize - 1].size = _GetValueTypeSize(type);
+  _valueList[_valueListSize - 1].type = type;
+  
+  //store the pointer to the variable that determines the number of elements. If it is not an array this has to point to NULL
+  _valueList[_valueListSize - 1].arraySize = arraySize;
 }
 
 uint16_t Sensor::_GetValueTypeSize(ValueType type)
@@ -131,19 +144,11 @@ uint16_t Sensor::_GetValueTypeSize(ValueType type)
   }
 }
 
-/*_AddArrayParam("valueArray", _valueArray, &_valueArraySize)
-{
-  // bool isArray = false
-  //store pointer in a list
-  //add name and A:type (depending on every addParam) to the outputformat string
-}*/
-
-
 /*
  * Different AddValue functions for the different types
  */
  
-void Sensor::_AddValue(char* valueName, uint16_t* value);
+void Sensor::_AddValue(char* valueName, uint16_t* value, uint16_t* arraySize=nullptr);
 {
-  _AddValueToValueList(valueName, (void*) value, ValueType::UI16);
+  _AddValueToValueList(valueName, (void*) value, ValueType::UI16, arraySize);
 }
