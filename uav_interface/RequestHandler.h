@@ -31,7 +31,8 @@ public:
 private: 
     void _HandleRequest();
     void _AddToQueue(char opcode, void* buffer, uint16_t bufferSize);
-    void _SendNextMessage();
+    inline void _AddOpCodeToQueue(char opCode);
+    uint16_t _SendNextMessage()
     inline void _Error(char* errorMessage);
     inline char _ReadOpcode();
     inline uint8_t _ReadSensorID();

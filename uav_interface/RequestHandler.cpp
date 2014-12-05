@@ -78,24 +78,27 @@ void RequestHandler::_HandleRequest()
           if(payload.size > 0)
           {
             uint8_t nrOfValues = _sensorList->elements[sensorID]->GetNumberOfValues();
-            /*for(uint8_t i = 0; i < payload.size; i++)
+            for(uint8_t i = 0; i < payload.size; i++)
             {
-              SensorData sensorData = _sensorList->elements[sensorID]->GetValue((uint8_t)payload.buffer[i]); //get the ith value
-              .....
-              ....
-              ...*/
-              uint8_t valueID = (uint8_t)payload.buffer.get()[0];
+              uint8_t valueID = (uint8_t)payload.buffer.get()[i];
               #ifdef DEBUG
                 valueID -= 48; //char to int8: '1' -> 1
               #endif
+              _AddToQueue('O', nullptr, 0);
               if(valueID < nrOfValues)
               {
-                Sensor::Data sensorData = _sensorList->elements[sensorID]->GetValue(valueID); //let's do the first one for now
-                _AddToQueue('O', sensorData.data, sensorData.elementSize*sensorData.numberOfElements);
+                Sensor::Data sensorData = _sensorList->elements[sensorID]->GetValue(valueID);
+                //If it is an array, let's put the number of elements first as a uint16_t
+                if(sensorData.numberOfElements > 1)
+                {
+                  _AddToQueue(&sensorData.numberOfElements, sensorData.elementSize*sensorData.numberOfElements);
+                }
+                _AddToQueue(sensorData.data, sensorData.elementSize*sensorData.numberOfElements);
               }
               else
               {
                 _Error("Incorrect value ID for this sensor.");
+                break; //go out of for
               }
           }
           else
@@ -105,7 +108,7 @@ void RequestHandler::_HandleRequest()
         }
         else
         {
-          _Error("Wrong payload size.");
+          _Error("Error reading payload. Wrong payload size?");
         }
       }
       else
@@ -122,8 +125,12 @@ void RequestHandler::_HandleRequest()
   _SendNextMessage();
 }
 
-void RequestHandler::_AddToQueue(char opcode, void* buffer, uint16_t bufferSize)
+void RequestHandler::_AddToQueue(void* buffer, uint16_t bufferSize)
 {
+  /*TODO: REMOVE OPCODE EVERYWHERE! FROM NOW ON, TO SEND THE OPCODE WE ARE GOING TO ADD IT TO THE QUEUE AS ANOTHER MESSAGE.
+  
+  
+  
   //Calculate in how many messages the (opcode + buffer) has to be fitted. bufferSize + 1 because of the opcode. MSG_MAX_SIZE + 1 because we want 64/64 to be 0. +1 to make it one message.
   uint16_t nrOfMessages = (bufferSize + 1) / (MSG_MAX_SIZE + 1) + 1;
 
@@ -162,7 +169,12 @@ void RequestHandler::_AddToQueue(char opcode, void* buffer, uint16_t bufferSize)
       _messageQueue[i].size = messageSize;
       _messagesToSend++;
     }
-  }
+  }*/
+}
+
+inline void Sensor::_AddOpCodeToQueue(char opCode);
+{
+  _AddToQueue(&opCode, 1);
 }
 
 inline char RequestHandler::_ReadOpcode()
@@ -209,14 +221,26 @@ inline uint8_t RequestHandler::_ReadSensorID()
   return sensorID;
 }
 
-void RequestHandler::_SendNextMessage()
+//returns the number of bytes sent
+uint16_t RequestHandler::_SendNextMessage()
 {
   if (_messagesToSend)
   {
-    _stream->write(_messageQueue[_currentMessage].buffer.get(), _messageQueue[_currentMessage].size);
+    uint16_t bytesWriten = _stream->write(_messageQueue[_currentMessage].buffer.get(), _messageQueue[_currentMessage].size);
     _messagesToSend--;
     _currentMessage++;
+    return bytesWriten;
   }
+  else
+  {
+    return 0;
+  }
+}
+
+//returns the total ammount of bytes sent
+uint16_t RequestHandler::_SendUntilMaxSize()
+{
+  //TODO
 }
 
 inline void RequestHandler::_Error(char* errorMessage)
