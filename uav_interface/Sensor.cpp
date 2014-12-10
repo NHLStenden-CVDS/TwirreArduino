@@ -2,17 +2,6 @@
 #include <cstring>
 #include <cstdlib>
 
-SensorList::SensorList(uint8_t len)
-{
-  length = len;
-  elements = new Sensor*[length];
-  //TODO: change to vector, or make it in a way that length changes when adding an element
-}
-
-SensorList::~SensorList()
-{
-  delete elements;
-}
 
 Sensor::Sensor(char* name, char* description)
 {

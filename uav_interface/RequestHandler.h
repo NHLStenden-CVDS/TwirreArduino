@@ -4,8 +4,9 @@
 #include <Stream.h>
 #include "Sensor.h"
 #include <memory>
+#include "SensorList.h"
 
-#define MAX_NR_MESSAGES 40
+#define MAX_NR_MESSAGES 1025
 #define MSG_MAX_SIZE 64 //If this is changed to more than 255, in the protocol, change payloadSize to more than one byte (uint16_t?)
 
 struct Message

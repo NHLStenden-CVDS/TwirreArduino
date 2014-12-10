@@ -5,14 +5,6 @@
 
 class Sensor;
 
-struct SensorList
-{
-  Sensor** elements;
-  uint8_t length;
-  explicit SensorList(uint8_t len);
-  ~SensorList();
-};
-
 enum ValueType
 {
   I8,

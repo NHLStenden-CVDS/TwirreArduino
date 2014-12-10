@@ -1,7 +1,7 @@
 #include "RequestHandler.h"
 #include <cstring>
 
-//#define DEBUG
+#define DEBUG
 
 RequestHandler::RequestHandler(SensorList* sensorList, Stream* stream)
 {
@@ -45,12 +45,12 @@ void RequestHandler::_HandleRequest()
       char* initString = (char*)malloc(1); //Initialize it with an empty string, we will use realloc to extend it later
       *initString = NULL; //We set it as an empty string so we will be able to use strcat
       uint16_t initStringSize = 0;
-      for(uint16_t i = 0; i < _sensorList->length; ++i)
+      for(uint16_t i = 0; i < _sensorList->GetLength(); ++i)
       {
         //calculate size to extend the string for this sensor
-        char* name = _sensorList->elements[i]->GetSensorName();
-        char* description = _sensorList->elements[i]->GetSensorDescription();
-        char* outputFormat = _sensorList->elements[i]->GetOutputFormatString();
+        char* name = _sensorList->GetSensor(i)->GetSensorName();
+        char* description = _sensorList->GetSensor(i)->GetSensorDescription();
+        char* outputFormat = _sensorList->GetSensor(i)->GetOutputFormatString();
         initStringSize += strlen(name) + strlen(description) + strlen(outputFormat) + 2 + 1; //+2 for | | and + 1 for the ; that separates two sensors in the string
         initString = (char*)realloc(initString, initStringSize + 1); //+1 for the Null terminator
         if(i>0)
@@ -70,14 +70,14 @@ void RequestHandler::_HandleRequest()
     case 'S':
     {
       uint8_t sensorID = _ReadSensorID();
-      if(sensorID < _sensorList->length)
+      if(sensorID < _sensorList->GetLength())
       {
         Payload payload;
         if(_ReadPayload(payload))
         {
           if(payload.size > 0)
           {
-            SensorData sensorData = _ConstructSensorData(_sensorList->elements[sensorID], payload);
+            SensorData sensorData = _ConstructSensorData(_sensorList->GetSensor(sensorID), payload);
             if(sensorData.size > 0 && sensorData.data.get() != nullptr)
             {
               _AddToQueue('O', sensorData.data.get(), sensorData.size);
