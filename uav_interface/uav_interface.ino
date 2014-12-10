@@ -4,6 +4,7 @@
 RequestHandler* requestHandler;
 
 Sensor42 sensor42("sensor42");
+Sensor42 secondSensor42("secondSensor42");
 
 SensorList sensorList;
 
@@ -13,6 +14,7 @@ void setup()
     Stream* ser = &Serial;
     
     sensorList.AddSensor(&sensor42);
+    sensorList.AddSensor(&secondSensor42);
     
     requestHandler = new RequestHandler(&sensorList, ser);
 }
@@ -20,5 +22,5 @@ void setup()
 void loop()
 {
   requestHandler->SendAndReceive();
-  sensor42.UpdateSensor();
+  sensorList.UpdateAll();
 } 

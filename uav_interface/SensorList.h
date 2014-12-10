@@ -12,6 +12,7 @@ public:
   void AddSensor(Sensor* sensor);
   uint8_t GetLength();
   Sensor* GetSensor(uint8_t id);
+  void UpdateAll();
   
 private:
   uint8_t _length;

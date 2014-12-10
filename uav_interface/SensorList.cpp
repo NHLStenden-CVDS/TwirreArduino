@@ -22,6 +22,14 @@ void SensorList::AddSensor(Sensor* sensor)
   _elements[_length - 1] = sensor;
 }
 
+void SensorList::UpdateAll()
+{
+  for(uint8_t i=0; i<_length; ++i)
+  {
+    _elements[i]->UpdateSensor();
+  }
+}
+
 uint8_t SensorList::GetLength()
 {
   return _length;
