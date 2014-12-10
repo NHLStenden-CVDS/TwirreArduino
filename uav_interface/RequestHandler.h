@@ -20,6 +20,12 @@ struct Payload
     uint8_t size;
 };
 
+struct SensorData
+{
+  std::unique_ptr<void> data;
+  uint16_t size;
+};
+
 
 class RequestHandler
 {
@@ -31,12 +37,12 @@ public:
 private: 
     void _HandleRequest();
     void _AddToQueue(char opcode, void* buffer, uint16_t bufferSize);
-    inline void _AddOpCodeToQueue(char opCode);
-    uint16_t _SendNextMessage()
+    uint16_t _SendNextMessage();
     inline void _Error(char* errorMessage);
     inline char _ReadOpcode();
     inline uint8_t _ReadSensorID();
     bool _ReadPayload(Payload &payload);
+    SensorData _ConstructSensorData(Sensor* sensor, Payload &payload);
     
     uint16_t _currentMessage;
     uint16_t _messagesToSend;

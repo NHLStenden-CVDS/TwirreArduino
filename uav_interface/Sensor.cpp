@@ -36,29 +36,55 @@ uint8_t Sensor::GetNumberOfValues()
   return _valueListSize;
 }
 
-Sensor::Data Sensor::GetValue(uint8_t valueID)
+SensorValue Sensor::GetValue(uint8_t valueID)
 {
-  Sensor::Data sensorData;
+  SensorValue sensorValue;
   if(valueID < _valueListSize)
   {
-    sensorData.data = _valueList[valueID].value;
+    sensorValue.value = _valueList[valueID].value;
     if(_valueList[valueID].arraySize != nullptr)
     {
-      sensorData.numberOfElements = *(_valueList[valueID].arraySize);
+      sensorValue.valueSize.numberOfElements = *(_valueList[valueID].arraySize);
+      sensorValue.valueSize.isArray = true;
     }
     else
     {
-      sensorData.numberOfElements = 1; //1 in case it is not an array, which we check next
+      sensorValue.valueSize.numberOfElements = 1; //1 in case it is not an array, which we check next
     }
-    sensorData.elementSize = _GetValueTypeSize(_valueList[valueID].type);
+    sensorValue.valueSize.elementSize = _GetValueTypeSize(_valueList[valueID].type);
   }
   else
   {
-    sensorData.data = nullptr;
-    sensorData.elementSize = 0;
-    sensorData.numberOfElements = 0;
+    sensorValue.value = nullptr;
+    sensorValue.valueSize.elementSize = 0;
+    sensorValue.valueSize.numberOfElements = 0;
   }
-  return sensorData;
+  return sensorValue;
+}
+
+SensorValueSize Sensor::GetValueSize(uint8_t valueID)
+{
+  SensorValueSize valueSize;
+  if(valueID < _valueListSize)
+  {
+    if(_valueList[valueID].arraySize != nullptr) //it is an array
+    {
+      valueSize.numberOfElements = *(_valueList[valueID].arraySize);
+      valueSize.isArray = true;
+    }
+    else
+    {
+      valueSize.numberOfElements = 1; //1 in case it is not an array, which we check next
+    }
+    valueSize.elementSize = _GetValueTypeSize(_valueList[valueID].type);
+  }
+  else
+  {
+    //Error
+    valueSize.elementSize = 0;
+    valueSize.numberOfElements = 0;
+  }
+  return valueSize;
 }
 
 char* Sensor::GetSensorName()

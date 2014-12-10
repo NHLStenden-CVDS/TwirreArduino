@@ -27,20 +27,26 @@ enum ValueType
   D
 };
 
+struct SensorValueSize
+{
+  uint16_t elementSize = 0;
+  uint16_t numberOfElements = 0;
+  bool isArray = false;
+};
+
+struct SensorValue
+{
+  void* value = nullptr;
+  SensorValueSize valueSize;
+};
 
 class Sensor
 {
 public:
-  struct Data
-  {
-    void* data = nullptr;
-    uint16_t elementSize = 0;
-    uint16_t numberOfElements = 0;
-  };
-
   Sensor(char* name, char* description);
   virtual ~Sensor();
-  Data GetValue(uint8_t valueID);
+  SensorValue GetValue(uint8_t valueID);
+  SensorValueSize GetValueSize(uint8_t valueID);
   uint8_t GetNumberOfValues();
   char* GetSensorName();
   char* GetSensorDescription();
