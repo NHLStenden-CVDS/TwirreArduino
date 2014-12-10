@@ -1,7 +1,7 @@
 #include "RequestHandler.h"
 #include <cstring>
 
-#define DEBUG
+//#define DEBUG
 
 RequestHandler::RequestHandler(SensorList* sensorList, Stream* stream)
 {
