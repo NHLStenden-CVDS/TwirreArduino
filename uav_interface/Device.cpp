@@ -30,7 +30,7 @@ DeviceVariable Device::GetVariable(uint8_t variableID)
   if(variableID < _variableListSize)
   {
     deviceVariable.variable = _variableList[variableID].variable;
-    if(_variableList[variableID].arraySize != nullptr)
+    if(_variableList[variableID].IsArray())
     {
       deviceVariable.variableSize.numberOfElements = *(_variableList[variableID].arraySize);
       deviceVariable.variableSize.isArray = true;
@@ -50,9 +50,36 @@ DeviceVariable Device::GetVariable(uint8_t variableID)
   return deviceVariable;
 }
 
-void Device::SetVariable(uint8_t variableID, void* variable)
+//Returns number of bytes set
+uint16_t Device::SetVariable(uint8_t variableID, void* variable)
 {
-  
+  if(variableID < _variableListSize)
+  {
+    uint16_t totalSize = 0;
+    uint16_t elementSize = _GetVariableTypeSize(_variableList[variableID].type);
+    uint16_t nrOfElements = 1; //we assume now that it is not an array, an if statement might change this later
+    void* currentBufferPosition = variable;
+    
+    //if it is an array we store the array size
+    if(_variableList[variableID].IsArray())
+    {
+      nrOfElements = *((uint16_t*)currentBufferPosition);
+      uint16_t size = sizeof(uint16_t);
+      totalSize += size;
+      currentBufferPosition += size;
+      *_variableList[variableID].arraySize = nrOfElements; //store how many elements the array has
+    }
+    
+    uint16_t size = elementSize*nrOfElements;
+    memcpy(_variableList[variableID].variable, currentBufferPosition, elementSize*nrOfElements);
+    totalSize += size;
+    
+    return totalSize;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 DeviceVariableSize Device::GetVariableSize(uint8_t variableID)
@@ -60,7 +87,7 @@ DeviceVariableSize Device::GetVariableSize(uint8_t variableID)
   DeviceVariableSize variableSize;
   if(variableID < _variableListSize)
   {
-    if(_variableList[variableID].arraySize != nullptr) //it is an array
+    if(_variableList[variableID].IsArray()) //it is an array
     {
       variableSize.numberOfElements = *(_variableList[variableID].arraySize);
       variableSize.isArray = true;
@@ -150,7 +177,7 @@ std::unique_ptr<char> Device::GetVariablesFormatString()
       strcat(format, _variableList[i].name);
       strcat(format, "=");
       //if it is an array, we will put A: in front of the type, resulting to A:I8 for example
-      if(_variableList[i].arraySize != nullptr)
+      if(_variableList[i].IsArray())
       {
         strcat(format, "A:");
       }
@@ -209,6 +236,10 @@ uint16_t Device::_GetVariableTypeSize(VariableType type)
   }
 }
 
+inline bool Device::Variable::IsArray()
+{
+  return (arraySize != nullptr);
+}
 
 /*
  * Different AddValue functions for the different types

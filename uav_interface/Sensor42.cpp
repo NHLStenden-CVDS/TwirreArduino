@@ -2,10 +2,6 @@
 #include <cstring>
 #include <cstdlib>
 
-uint32_t _value;
-uint32_t* _valueArray;
-uint16_t _valueArraySize;
-
 Sensor42::Sensor42(char* name) : Device(name, "This sensor is used for testing purposes. It returns the parameter 'value' which is fixed to 42.")
 {
   _AddVariable("value", &_value);

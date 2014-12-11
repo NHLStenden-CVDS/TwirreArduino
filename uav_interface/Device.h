@@ -23,7 +23,7 @@ public:
   Device(char* name, char* description);
   virtual ~Device();
   DeviceVariable GetVariable(uint8_t variableID);
-  void SetVariable(uint8_t variableID, void* variable);
+  uint16_t SetVariable(uint8_t variableID, void* variable);
   DeviceVariableSize GetVariableSize(uint8_t variableID);
   uint8_t GetNumberOfVariables();
   char* GetName();
@@ -67,6 +67,8 @@ private:
     uint16_t* arraySize = nullptr;
     char* name;
     VariableType type;
+    
+    inline bool IsArray();
   };
 
   void _AddVariableToVariableList(char* variableName, void* variable, VariableType type, uint16_t* arraySize=nullptr);
