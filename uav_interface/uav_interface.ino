@@ -6,17 +6,18 @@ RequestHandler* requestHandler;
 Sensor42 sensor42("sensor42");
 Sensor42 secondSensor42("secondSensor42");
 
-SensorList sensorList;
+DeviceList sensorList;
+DeviceList actuatorList;
 
 void setup()
 {
     Serial.begin(115200);
     Stream* ser = &Serial;
     
-    sensorList.AddSensor(&sensor42);
-    sensorList.AddSensor(&secondSensor42);
+    sensorList.Add(&sensor42);
+    sensorList.Add(&secondSensor42);
     
-    requestHandler = new RequestHandler(&sensorList, ser);
+    requestHandler = new RequestHandler(&sensorList, &actuatorList, ser);
 }
 
 void loop()

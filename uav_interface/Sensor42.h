@@ -1,13 +1,13 @@
 #ifndef SENSOR42_H_
 #define SENSOR42_H_
 
-#include "Sensor.h"
+#include "Device.h"
 
-class Sensor42 : public Sensor
+class Sensor42 : public Device
 {
 public:
     Sensor42(char* name);
-    void UpdateSensor();
+    void Update();
     
 private:
     uint32_t _value;

@@ -2,9 +2,8 @@
 #define REQUEST_H_
 
 #include <Stream.h>
-#include "Sensor.h"
-#include <memory>
-#include "SensorList.h"
+#include "Device.h"
+#include "DeviceList.h"
 
 #define MAX_NR_MESSAGES 1025
 #define MSG_MAX_SIZE 64 //If this is changed to more than 255, in the protocol, change payloadSize to more than one byte (uint16_t?)
@@ -31,7 +30,7 @@ struct SensorData
 class RequestHandler
 {
 public:
-    RequestHandler(SensorList* sensorList, Stream* stream);
+    RequestHandler(DeviceList* deviceList, DeviceList* actuatorList, Stream* stream);
     void SendAndReceive();
     void Initialize();
 
@@ -43,12 +42,14 @@ private:
     inline char _ReadOpcode();
     inline uint8_t _ReadSensorID();
     bool _ReadPayload(Payload &payload);
-    SensorData _ConstructSensorData(Sensor* sensor, Payload &payload);
+    SensorData _ConstructSensorData(Device* sensor, Payload &payload);
+    std::unique_ptr<char> _GenerateDevicesInfoString();
     
     uint16_t _currentMessage;
     uint16_t _messagesToSend;
     
-    SensorList* _sensorList;
+    DeviceList* _sensorList;
+    DeviceList* _actuatorList;
     
     Message _messageQueue[MAX_NR_MESSAGES];
     Stream* _stream;

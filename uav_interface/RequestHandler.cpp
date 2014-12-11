@@ -3,12 +3,13 @@
 
 #define DEBUG
 
-RequestHandler::RequestHandler(SensorList* sensorList, Stream* stream)
+RequestHandler::RequestHandler(DeviceList* sensorList, DeviceList* actuatorList, Stream* stream)
 {
   _currentMessage = 0;
   _messagesToSend = 0;
 
   _sensorList = sensorList;
+  _actuatorList = actuatorList;
   _stream = stream;
 }
 
@@ -40,31 +41,8 @@ void RequestHandler::_HandleRequest()
     }
     case 'I':
     {
-      //get every sensor's name, description and outputformat and put it like name|desc|format. Separate these strings by ; and send it.
-      //Take care about memory (free) of the format but not the description or the name.
-      char* initString = (char*)malloc(1); //Initialize it with an empty string, we will use realloc to extend it later
-      *initString = NULL; //We set it as an empty string so we will be able to use strcat
-      uint16_t initStringSize = 0;
-      for(uint16_t i = 0; i < _sensorList->GetLength(); ++i)
-      {
-        //calculate size to extend the string for this sensor
-        char* name = _sensorList->GetSensor(i)->GetSensorName();
-        char* description = _sensorList->GetSensor(i)->GetSensorDescription();
-        char* outputFormat = _sensorList->GetSensor(i)->GetOutputFormatString();
-        initStringSize += strlen(name) + strlen(description) + strlen(outputFormat) + 2 + 1; //+2 for | | and + 1 for the ; that separates two sensors in the string
-        initString = (char*)realloc(initString, initStringSize + 1); //+1 for the Null terminator
-        if(i>0)
-        {
-          strcat(initString, ";"); //if it is not the first one, we will separate the sensors with a semicolon
-        }
-        strcat(initString, name);
-        strcat(initString, "|");
-        strcat(initString, description);
-        strcat(initString, "|");
-        strcat(initString, outputFormat);
-        free(outputFormat); //we have to take care of this! not name or description because they are members of the Sensor class. The output string is generated when calling GetOutputFormatString().
-      }
-      _AddToQueue('O', initString, strlen(initString) + 1); //+1 for the null terminator
+      std::unique_ptr<char> sensorInfoStringSize = _GenerateDevicesInfoString();
+      _AddToQueue('O', sensorInfoStringSize.get(), strlen(sensorInfoStringSize.get()) + 1); //+1 for the null terminator
       break;
     }
     case 'S':
@@ -77,7 +55,7 @@ void RequestHandler::_HandleRequest()
         {
           if(payload.size > 0)
           {
-            SensorData sensorData = _ConstructSensorData(_sensorList->GetSensor(sensorID), payload);
+            SensorData sensorData = _ConstructSensorData(_sensorList->Get(sensorID), payload);
             if(sensorData.size > 0 && sensorData.data.get() != nullptr)
             {
               _AddToQueue('O', sensorData.data.get(), sensorData.size);
@@ -111,27 +89,54 @@ void RequestHandler::_HandleRequest()
   _SendNextMessage();
 }
 
-SensorData RequestHandler::_ConstructSensorData(Sensor* sensor, Payload &payload)
+std::unique_ptr<char> RequestHandler::_GenerateDevicesInfoString()
+{
+    //get every sensor's name, description and outputformat and put it like name|desc|format. Separate these strings by ; and send it.
+    char* infoString = (char*)malloc(1); //Initialize it with an empty string, we will use realloc to extend it later
+    *infoString = NULL; //We set it as an empty string so we will be able to use strcat
+    uint16_t infoStringSize = 0;
+    for(uint16_t i = 0; i < _sensorList->GetLength(); ++i)
+    {
+      //calculate size to extend the string for this sensor
+      char* name = _sensorList->Get(i)->GetName();
+      char* description = _sensorList->Get(i)->GetDescription();
+      std::unique_ptr<char> format = _sensorList->Get(i)->GetVariablesFormatString();
+      infoStringSize += strlen(name) + strlen(description) + strlen(format.get()) + 2 + 1; //+2 for | | and + 1 for the ; that separates two sensors in the string
+      infoString = (char*)realloc(infoString, infoStringSize + 1); //+1 for the Null terminator
+      if(i>0)
+      {
+        strcat(infoString, ";"); //if it is not the first one, we will separate the sensors with a semicolon
+      }
+      strcat(infoString, name);
+      strcat(infoString, "|");
+      strcat(infoString, description);
+      strcat(infoString, "|");
+      strcat(infoString, format.get());
+    }
+    return std::unique_ptr<char>(infoString);
+}
+
+SensorData RequestHandler::_ConstructSensorData(Device* sensor, Payload &payload)
 {
   SensorData sensorData;
-  uint8_t nrOfValues = sensor->GetNumberOfValues();
+  uint8_t nrOfVariables = sensor->GetNumberOfVariables();
   
   //Get the size of the buffer
   uint16_t totalSize = 0;
   for(uint8_t i = 0; i < payload.size; i++)
   {
-    uint8_t valueID = (uint8_t)payload.buffer.get()[i];
+    uint8_t variableID = (uint8_t)payload.buffer.get()[i];
     #ifdef DEBUG
-      valueID -= 48;
+      variableID -= 48;
     #endif
-    SensorValueSize valueSize = sensor->GetValueSize(valueID);
-    if(valueSize.numberOfElements > 0 && valueSize.elementSize > 0)
+    DeviceVariableSize variableSize = sensor->GetVariableSize(variableID);
+    if(variableSize.numberOfElements > 0 && variableSize.elementSize > 0)
     {
-      totalSize += valueSize.numberOfElements * valueSize.elementSize;
-      if(valueSize.isArray)
+      totalSize += variableSize.numberOfElements * variableSize.elementSize;
+      if(variableSize.isArray)
       {
         //It is an array! we have to allocate the size as well!
-        totalSize += sizeof(valueSize.elementSize);
+        totalSize += sizeof(variableSize.elementSize);
       }
     }
     else
@@ -153,22 +158,22 @@ SensorData RequestHandler::_ConstructSensorData(Sensor* sensor, Payload &payload
   //put the values in the buffer
   for(uint8_t i = 0; i < payload.size; i++)
   {
-    uint8_t valueID = (uint8_t)payload.buffer.get()[i];
+    uint8_t variableID = (uint8_t)payload.buffer.get()[i];
     #ifdef DEBUG
-      valueID -= 48;
+      variableID -= 48;
     #endif
     
-    SensorValue sensorValue = sensor->GetValue(valueID);
+    DeviceVariable sensorVariable = sensor->GetVariable(variableID);
     //If it is an array, let's put the number of elements first
-    if(sensorValue.valueSize.isArray)
+    if(sensorVariable.variableSize.isArray)
     {
-        uint16_t size = sizeof(sensorValue.valueSize.numberOfElements);
-        memcpy(currentBufferPosition, &(sensorValue.valueSize.numberOfElements), size);
+        uint16_t size = sizeof(sensorVariable.variableSize.numberOfElements);
+        memcpy(currentBufferPosition, &(sensorVariable.variableSize.numberOfElements), size);
         currentBufferPosition += size;
     }
     //we copy the value
-    uint16_t size = sensorValue.valueSize.numberOfElements * sensorValue.valueSize.elementSize;
-    memcpy(currentBufferPosition, sensorValue.value, size);
+    uint16_t size = sensorVariable.variableSize.numberOfElements * sensorVariable.variableSize.elementSize;
+    memcpy(currentBufferPosition, sensorVariable.variable, size);
     currentBufferPosition += size;
   }
   
