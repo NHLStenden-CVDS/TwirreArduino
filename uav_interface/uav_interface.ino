@@ -28,4 +28,5 @@ void loop()
 {
   requestHandler->SendAndReceive();
   sensorList.UpdateAll();
+  actuatorList.UpdateAll();
 } 

@@ -1,5 +1,6 @@
 #include "RequestHandler.h"
 #include <cstring>
+#include <cstdlib>
 
 #define DEBUG
 
@@ -33,32 +34,73 @@ void RequestHandler::_HandleRequest()
   {
       //All the cases should add a message to the queue!
     case 'P':
-    {
-      //send a one-byte message with a 'P' back
-      char buffer = 'P';
-      _AddToQueue('P', nullptr, 0);
-      break;
-    }
-    case 'I':
-    {
-      std::unique_ptr<char> sensorInfoStringSize = _GenerateDevicesInfoString();
-      _AddToQueue('O', sensorInfoStringSize.get(), strlen(sensorInfoStringSize.get()) + 1); //+1 for the null terminator
-      break;
-    }
-    case 'S':
-    {
-      uint8_t sensorID = _ReadSensorID();
-      if(sensorID < _sensorList->GetLength())
       {
-        Payload payload;
-        if(_ReadPayload(payload))
+        //send a one-byte message with a 'P' back
+        _AddToQueue('P');
+        break;
+      }
+    case 'I':
+      {
+        switch(_ReadOpcode()) //read the next byte of the message. Which is an S or an A depending on if you want the info string of the sensors or the actuators (IS or IA respectively)
         {
-          if(payload.size > 0)
+          case 'S':
           {
-            SensorData sensorData = _ConstructSensorData(_sensorList->Get(sensorID), payload);
-            if(sensorData.size > 0 && sensorData.data.get() != nullptr)
+            Payload payload = _DevicesInfoPayload(_sensorList);
+            _AddToQueue('O', payload);
+            break;
+          }
+          case 'A':
+          {
+            Payload payload = _DevicesInfoPayload(_actuatorList);
+            _AddToQueue('O', payload);
+            break;
+          }
+          default:
+            _Error("Incorrect device type identifier (it should be IA or IS).");
+        }
+
+        break;
+      }
+    case 'A':
+      {
+        uint8_t actuatorID = _ReadDeviceID();
+        if (actuatorID < _actuatorList->GetLength())
+        {
+          Payload payload = _ReadPayload();
+          if (payload.size > 0 && payload.data != nullptr)
+          {
+            if (_Actuate(_actuatorList->Get(actuatorID), payload))
             {
-              _AddToQueue('O', sensorData.data.get(), sensorData.size);
+              _AddToQueue('O');
+            }
+            else
+            {
+              _Error("Incorrect value ID for this actuator.");
+            }
+          }
+          else
+          {
+            _Error("Unexpected payload size.");
+          }
+        }
+        else
+        {
+          _Error("Incorrect actuator ID.");
+        }
+        break;
+      }
+    case 'S':
+      {
+        uint8_t sensorID = _ReadDeviceID();
+        if (sensorID < _sensorList->GetLength())
+        {
+          Payload payload = _ReadPayload();
+          if (payload.size > 0 && payload.data != nullptr)
+          {
+            Payload sensorData = _CreateSenseResponse(_sensorList->Get(sensorID), payload);
+            if (sensorData.size > 0 && sensorData.data.get() != nullptr)
+            {
+              _AddToQueue('O', sensorData);
             }
             else
             {
@@ -67,20 +109,18 @@ void RequestHandler::_HandleRequest()
           }
           else
           {
-            _Error("Payload size is 0.");
+            _Error("Unexpected payload size.");
           }
         }
         else
         {
-          _Error("Error reading payload. Wrong payload size?");
+          _Error("Incorrect sensor ID.");
         }
+        break;
       }
-      else
-      {
-        _Error("Incorrect sensor ID.");
-      }
+    case 'E':
+      _Error("Error test");
       break;
-    }
     default :
       _Error("Unsupported operation code.");
   }
@@ -89,51 +129,77 @@ void RequestHandler::_HandleRequest()
   _SendNextMessage();
 }
 
-std::unique_ptr<char> RequestHandler::_GenerateDevicesInfoString()
+Payload RequestHandler::_DevicesInfoPayload(DeviceList* deviceList)
 {
-    //get every sensor's name, description and outputformat and put it like name|desc|format. Separate these strings by ; and send it.
-    char* infoString = (char*)malloc(1); //Initialize it with an empty string, we will use realloc to extend it later
-    *infoString = NULL; //We set it as an empty string so we will be able to use strcat
-    uint16_t infoStringSize = 0;
-    for(uint16_t i = 0; i < _sensorList->GetLength(); ++i)
+  //get every sensor's name, description and outputformat and put it like name|desc|format. Separate these strings by ; and send it.
+  char* infoString = (char*)malloc(1); //Initialize it with an empty string, we will use realloc to extend it later
+  *infoString = NULL; //We set it as an empty string so we will be able to use strcat
+  uint16_t infoStringSize = 0;
+  for (uint16_t i = 0; i < deviceList->GetLength(); ++i)
+  {
+    //calculate size to extend the string for this sensor
+    char* name = deviceList->Get(i)->GetName();
+    char* description = deviceList->Get(i)->GetDescription();
+    std::unique_ptr<char> format = deviceList->Get(i)->GetVariablesFormatString();
+    if (i > 0)
     {
-      //calculate size to extend the string for this sensor
-      char* name = _sensorList->Get(i)->GetName();
-      char* description = _sensorList->Get(i)->GetDescription();
-      std::unique_ptr<char> format = _sensorList->Get(i)->GetVariablesFormatString();
-      infoStringSize += strlen(name) + strlen(description) + strlen(format.get()) + 2 + 1; //+2 for | | and + 1 for the ; that separates two sensors in the string
-      infoString = (char*)realloc(infoString, infoStringSize + 1); //+1 for the Null terminator
-      if(i>0)
-      {
-        strcat(infoString, ";"); //if it is not the first one, we will separate the sensors with a semicolon
-      }
-      strcat(infoString, name);
-      strcat(infoString, "|");
-      strcat(infoString, description);
-      strcat(infoString, "|");
-      strcat(infoString, format.get());
+       infoStringSize++; //if it is not the first one, we will separate the sensors with a semicolon
     }
-    return std::unique_ptr<char>(infoString);
+    infoStringSize += strlen(name) + strlen(description) + strlen(format.get()) + 2; //+2 for | |
+    
+    //We make the buffer bigger
+    infoString = (char*)realloc(infoString, infoStringSize + 1); //+1 for the Null terminator
+    if (i > 0)
+    {
+      strcat(infoString, ";"); //if it is not the first one, we will separate the sensors with a semicolon
+    }
+    strcat(infoString, name);
+    strcat(infoString, "|");
+    strcat(infoString, description);
+    strcat(infoString, "|");
+    strcat(infoString, format.get());
+  }
+  return Payload(infoString, infoStringSize + 1); //+1 for the null terminator.
 }
 
-SensorData RequestHandler::_ConstructSensorData(Device* sensor, Payload &payload)
+bool RequestHandler::_Actuate(Device* actuator, Payload &payload)
 {
-  SensorData sensorData;
-  uint8_t nrOfVariables = sensor->GetNumberOfVariables();
+  uint16_t bytesToRead = payload.size;
+  char* currentDataPosition = payload.data.get();
   
-  //Get the size of the buffer
-  uint16_t totalSize = 0;
-  for(uint8_t i = 0; i < payload.size; i++)
+  while(bytesToRead > 0)
   {
-    uint8_t variableID = (uint8_t)payload.buffer.get()[i];
+    uint8_t variableID = *(uint8_t*)currentDataPosition;
+    currentDataPosition++;
+    bytesToRead--;
     #ifdef DEBUG
-      variableID -= 48;
+      variableID = atoi((char*)&variableID);
+    #endif
+    uint16_t bytesRead = actuator->SetVariable(variableID, currentDataPosition);
+    bytesToRead -= bytesRead;
+    currentDataPosition += bytesRead;
+  }
+  
+  return (bytesToRead == 0);
+}
+
+Payload RequestHandler::_CreateSenseResponse(Device* sensor, Payload &request)
+{
+  uint8_t nrOfVariables = sensor->GetNumberOfVariables();
+
+  //Get the size of the data
+  uint16_t totalSize = 0;
+  for (uint8_t i = 0; i < request.size; i++)
+  {
+    uint8_t variableID = (uint8_t)request.data.get()[i];
+    #ifdef DEBUG
+      variableID = atoi((char*)&variableID);
     #endif
     DeviceVariableSize variableSize = sensor->GetVariableSize(variableID);
-    if(variableSize.numberOfElements > 0 && variableSize.elementSize > 0)
+    if (variableSize.numberOfElements > 0 && variableSize.elementSize > 0)
     {
       totalSize += variableSize.numberOfElements * variableSize.elementSize;
-      if(variableSize.isArray)
+      if (variableSize.isArray)
       {
         //It is an array! we have to allocate the size as well!
         totalSize += sizeof(variableSize.elementSize);
@@ -141,60 +207,63 @@ SensorData RequestHandler::_ConstructSensorData(Device* sensor, Payload &payload
     }
     else
     {
-      sensorData.size = 0;
-      sensorData.data = std::unique_ptr<void>(nullptr);
-      return sensorData;      
+      return Payload(nullptr, 0);
     }
   }
-  
-  //allocate the buffer
-  void* data = malloc(totalSize);
-  sensorData.data = std::unique_ptr<void>(data);
-  sensorData.size = totalSize;
-  
-  //we will use an auxiliar pointer to the buffer to copy all the values into their positions
-  void* currentBufferPosition = data;
-  
-  //put the values in the buffer
-  for(uint8_t i = 0; i < payload.size; i++)
+
+  //allocate the data
+  char* data = (char*)malloc(totalSize);
+
+  //we will use an auxiliar pointer to the data to copy all the values into their positions
+  char* currentDataPosition = data;
+
+  //put the values in the data
+  for (uint8_t i = 0; i < request.size; i++)
   {
-    uint8_t variableID = (uint8_t)payload.buffer.get()[i];
+    uint8_t variableID = (uint8_t)request.data.get()[i];
     #ifdef DEBUG
-      variableID -= 48;
+      variableID = atoi((char*)&variableID);
     #endif
-    
+
     DeviceVariable sensorVariable = sensor->GetVariable(variableID);
     //If it is an array, let's put the number of elements first
-    if(sensorVariable.variableSize.isArray)
+    if (sensorVariable.variableSize.isArray)
     {
-        uint16_t size = sizeof(sensorVariable.variableSize.numberOfElements);
-        memcpy(currentBufferPosition, &(sensorVariable.variableSize.numberOfElements), size);
-        currentBufferPosition += size;
+      uint16_t size = sizeof(sensorVariable.variableSize.numberOfElements);
+      memcpy(currentDataPosition, &(sensorVariable.variableSize.numberOfElements), size);
+      currentDataPosition += size;
     }
     //we copy the value
     uint16_t size = sensorVariable.variableSize.numberOfElements * sensorVariable.variableSize.elementSize;
-    memcpy(currentBufferPosition, sensorVariable.variable, size);
-    currentBufferPosition += size;
+    memcpy(currentDataPosition, sensorVariable.variable, size);
+    currentDataPosition += size;
   }
-  
-  return sensorData;
+
+  return Payload(data, totalSize);
 }
 
-void RequestHandler::_AddToQueue(char opcode, void* buffer, uint16_t bufferSize)
+// Constructs one or more sendable messages from a payload and adds them to the sending-queue
+// The first message will start with the opCode (O, E, etc.)
+void RequestHandler::_AddToQueue(char opCode, Payload &payload)
 {
-  //Calculate in how many messages the (opcode + buffer) has to be fitted. bufferSize + 1 because of the opcode. MSG_MAX_SIZE + 1 because we want 64/64 to be 0. +1 to make it one message.
-  uint16_t nrOfMessages = (bufferSize + 1) / (MSG_MAX_SIZE + 1) + 1;
+  // WARNING:s
+  // This function will reset the queue every time it is used.
+  // If you add another payload before the previous one (all the messages) has been sent, it will overwrite the previous one.
+  
+  
+  //Calculate in how many messages the (opCode + data) has to be fitted. dataSize + 1 because of the opcode. MSG_MAX_SIZE + 1 because we want 64/64 to be 0. +1 to make it one message.
+  uint16_t nrOfMessages = (payload.size + 1) / (MSG_MAX_SIZE + 1) + 1;
 
   //If the total ammount of messages don't fit in the queue, we put an error message in the queue
   if (nrOfMessages > MAX_NR_MESSAGES)
   {
-    _Error("[_AddToQueue] The buffer is too big.");
+    _Error("[_AddToQueue] The payload is too big.");
   }
-  //else we split the buffer into nrOfMessages messages
+  //else we split the data into nrOfMessages messages
   else
   {
-    //bufferSize + 1 because of the opcode, -1 because of the formula
-    uint16_t lastMessageSize = (bufferSize + 1) - ( (bufferSize + 1 - 1) / MSG_MAX_SIZE ) * MSG_MAX_SIZE;
+    //dataSize + 1 because of the opcode, -1 because of the formula
+    uint16_t lastMessageSize = (payload.size + 1) - ( (payload.size + 1 - 1) / MSG_MAX_SIZE ) * MSG_MAX_SIZE;
 
     //_messageQueue will always be empty at this point
     _currentMessage = 0;
@@ -202,69 +271,73 @@ void RequestHandler::_AddToQueue(char opcode, void* buffer, uint16_t bufferSize)
     for (uint16_t i = 0; i < nrOfMessages; i++)
     {
       uint16_t messageSize = (i == nrOfMessages - 1) ? lastMessageSize : MSG_MAX_SIZE;
-      char* messageBuffer = new char[messageSize];
-      // Copying the bytes of the current message from the buffer.
+      char* messageData = new char[messageSize];
+      // Copying the bytes of the current message from the data.
       if (i == 0)
       {
-        *messageBuffer = opcode;
-        if (bufferSize != 0)
+        *messageData = opCode;
+        if (payload.size != 0)
         {
-          memcpy(messageBuffer + 1, buffer, messageSize - 1);
+          memcpy(messageData + 1, payload.data.get(), messageSize - 1);
         }
       }
       else
       {
-        memcpy(messageBuffer, buffer + i * MSG_MAX_SIZE - 1, messageSize);
+        memcpy(messageData, payload.data.get() + i * MSG_MAX_SIZE - 1, messageSize);
       }
-      _messageQueue[i].buffer = std::unique_ptr<char>(messageBuffer);
-      _messageQueue[i].size = messageSize;
+      _messageQueue[i] = Message(messageData, messageSize);
       _messagesToSend++;
     }
   }
 }
 
+inline void RequestHandler::_AddToQueue(char opCode)
+{
+  Payload payload(nullptr, 0);
+  _AddToQueue(opCode, payload);
+}
+
 inline char RequestHandler::_ReadOpcode()
 {
-  char opcode;
+  char opcode = ' '; //some random opcode that we won't use
   _stream->readBytes(&opcode, 1);
   return opcode;
 }
 
-bool RequestHandler::_ReadPayload(Payload &payload)
+Payload RequestHandler::_ReadPayload()
 {
-  bool everythingAllright = true;
-  char* buffer = nullptr;
-  payload.size = 0;
-  uint8_t receivedPayloadSize;
-  
-  if(everythingAllright = (_stream->readBytes(&payload.size, 1) == 1))
+  uint16_t size;
+  if (_stream->readBytes((char*)&size, 2) == 2) //read the size of the payload, which is a uint16_t
   {
     #ifdef DEBUG
-      payload.size -= 48; //char to int8: '1' -> 1
+      size = atoi((char*)&size);
     #endif
-    receivedPayloadSize = payload.size;
-    if (payload.size > 0)
+    uint8_t expectedPayloadSize = size;
+    if (size > 0)
     {
-      buffer = new char[payload.size];
-      payload.size = _stream->readBytes(buffer, payload.size);
-      if(payload.size < receivedPayloadSize)
+      char* data = new char[size];
+      size = _stream->readBytes(data, size);
+      if (size == expectedPayloadSize)
       {
-        everythingAllright = false;
+        return Payload(data, size);
+      }
+      else
+      {
+        delete data;
       }
     }
   }
-  payload.buffer = std::unique_ptr<char>(buffer);
-  return everythingAllright;
+  return Payload(nullptr, 0); //return if not successful
 }
 
-inline uint8_t RequestHandler::_ReadSensorID()
+inline uint8_t RequestHandler::_ReadDeviceID()
 {
-  uint8_t sensorID;
-  _stream->readBytes(&sensorID, 1);
+  uint8_t id;
+  _stream->readBytes(&id, 1);
   #ifdef DEBUG
-    sensorID -= 48;
+    id = atoi((char*)&id);
   #endif
-  return sensorID;
+  return id;
 }
 
 //returns the number of bytes sent
@@ -272,7 +345,7 @@ uint16_t RequestHandler::_SendNextMessage()
 {
   if (_messagesToSend)
   {
-    uint16_t bytesWriten = _stream->write(_messageQueue[_currentMessage].buffer.get(), _messageQueue[_currentMessage].size);
+    uint16_t bytesWriten = _stream->write(_messageQueue[_currentMessage].data.get(), _messageQueue[_currentMessage].size);
     _messagesToSend--;
     _currentMessage++;
     return bytesWriten;
@@ -283,7 +356,11 @@ uint16_t RequestHandler::_SendNextMessage()
   }
 }
 
-inline void RequestHandler::_Error(char* errorMessage)
+inline void RequestHandler::_Error(const char* errorString)
 {
-  _AddToQueue('E', errorMessage, strlen(errorMessage) + 1); //messageLength + 1 for the NULL terminator character
+  uint16_t size = strlen(errorString);
+  char* errorMessage = new char[size+1]; //+ 1 for the NULL terminator
+  strcpy(errorMessage, errorString);
+  Payload payload(errorMessage, size + 1); //messageLength + 1 for the NULL terminator character
+  _AddToQueue('E', payload);
 }
