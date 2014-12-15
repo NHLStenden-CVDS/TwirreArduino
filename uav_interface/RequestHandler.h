@@ -34,7 +34,7 @@ class RequestHandler
     void _AddToQueue(char opCode, Payload &payload);
     inline void _AddToQueue(char opCode);
     uint16_t _SendNextMessage();
-    inline void _Error(char* errorMessage);
+    inline void _Error(const char* errorMessage);
     inline char _ReadOpcode();
     inline uint8_t _ReadDeviceID();
     Payload _ReadPayload();
