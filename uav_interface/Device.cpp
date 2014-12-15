@@ -4,9 +4,9 @@
 
 Device::Device(char* name, char* description)
 {
-  _name = (char*)malloc(strlen(name)+1);//+1 for the NULL terminator
+  _name = (char*)malloc(strlen(name) + 1); //+1 for the NULL terminator
   strcpy(_name, name);
-  _description = (char*)malloc(strlen(description)+1);//+1 for the NULL terminator
+  _description = (char*)malloc(strlen(description) + 1); //+1 for the NULL terminator
   strcpy(_description, description);
 
   _variableListSize = 0;
@@ -27,10 +27,10 @@ uint8_t Device::GetNumberOfVariables()
 DeviceVariable Device::GetVariable(uint8_t variableID)
 {
   DeviceVariable deviceVariable;
-  if(variableID < _variableListSize)
+  if (variableID < _variableListSize)
   {
     deviceVariable.variable = _variableList[variableID].variable;
-    if(_variableList[variableID].IsArray())
+    if (_variableList[variableID].IsArray())
     {
       deviceVariable.variableSize.numberOfElements = *(_variableList[variableID].arraySize);
       deviceVariable.variableSize.isArray = true;
@@ -53,15 +53,15 @@ DeviceVariable Device::GetVariable(uint8_t variableID)
 //Returns number of bytes set
 uint16_t Device::SetVariable(uint8_t variableID, void* variable)
 {
-  if(variableID < _variableListSize)
+  if (variableID < _variableListSize)
   {
     uint16_t totalSize = 0;
     uint16_t elementSize = _GetVariableTypeSize(_variableList[variableID].type);
     uint16_t nrOfElements = 1; //we assume now that it is not an array, an if statement might change this later
     void* currentBufferPosition = variable;
-    
+
     //if it is an array we store the array size
-    if(_variableList[variableID].IsArray())
+    if (_variableList[variableID].IsArray())
     {
       nrOfElements = *((uint16_t*)currentBufferPosition);
       uint16_t size = sizeof(uint16_t);
@@ -69,11 +69,11 @@ uint16_t Device::SetVariable(uint8_t variableID, void* variable)
       currentBufferPosition += size;
       *_variableList[variableID].arraySize = nrOfElements; //store how many elements the array has
     }
-    
-    uint16_t size = elementSize*nrOfElements;
-    memcpy(_variableList[variableID].variable, currentBufferPosition, elementSize*nrOfElements);
+
+    uint16_t size = elementSize * nrOfElements;
+    memcpy(_variableList[variableID].variable, currentBufferPosition, elementSize * nrOfElements);
     totalSize += size;
-    
+
     return totalSize;
   }
   else
@@ -85,9 +85,9 @@ uint16_t Device::SetVariable(uint8_t variableID, void* variable)
 DeviceVariableSize Device::GetVariableSize(uint8_t variableID)
 {
   DeviceVariableSize variableSize;
-  if(variableID < _variableListSize)
+  if (variableID < _variableListSize)
   {
-    if(_variableList[variableID].IsArray()) //it is an array
+    if (_variableList[variableID].IsArray()) //it is an array
     {
       variableSize.numberOfElements = *(_variableList[variableID].arraySize);
       variableSize.isArray = true;
@@ -120,21 +120,21 @@ char* Device::GetDescription()
 std::unique_ptr<char> Device::GetVariablesFormatString()
 {
   char* format;
-  uint16_t formatLength = 0; 
-  for(uint16_t i=0; i < _variableListSize; ++i)
+  uint16_t formatLength = 0;
+  for (uint16_t i = 0; i < _variableListSize; ++i)
   {
     formatLength += strlen(_variableList[i].name) + 10; //+10 for the '=type,' it can result to 'name=A:UI64,'
   }
-  
-  if(formatLength > 0)
+
+  if (formatLength > 0)
   {
     //create string for the outputformat. Its size depends on the number of values that the sensor has
     format = (char*)malloc(formatLength + 1); //+1 for the null terminator
     format[0] = NULL; //We set it as an empty string so we will be able to use strcat
-    
+
     //for every value we will have a type which will be of maximum 4 chars
     char* typeString = (char*)malloc(5); //space for 4 chars + NULL terminator
-    for(uint16_t i=0; i < _variableListSize; ++i)
+    for (uint16_t i = 0; i < _variableListSize; ++i)
     {
       switch (_variableList[i].type)
       {
@@ -169,7 +169,7 @@ std::unique_ptr<char> Device::GetVariablesFormatString()
           strcpy(typeString, "D");
           break;
       }
-      if(i>0)
+      if (i > 0)
       {
         //if it is not the first one, we should add a coma as a separation
         strcat(format, ",");
@@ -177,7 +177,7 @@ std::unique_ptr<char> Device::GetVariablesFormatString()
       strcat(format, _variableList[i].name);
       strcat(format, "=");
       //if it is an array, we will put A: in front of the type, resulting to A:I8 for example
-      if(_variableList[i].IsArray())
+      if (_variableList[i].IsArray())
       {
         strcat(format, "A:");
       }
@@ -198,19 +198,19 @@ void Device::_AddVariableToVariableList(char* variableName, void* variable, Vari
 {
   //make the list longer allocating memory for the new SensorValue
   _variableListSize++;
-  _variableList = (Variable*)realloc(_variableList, _variableListSize*sizeof(Variable));
-  
+  _variableList = (Variable*)realloc(_variableList, _variableListSize * sizeof(Variable));
+
   //reserve space for the length of the string + NULL terminator
   _variableList[_variableListSize - 1].name = (char*)malloc(strlen(variableName) + 1);
   //copy the name
   strcpy(_variableList[_variableListSize - 1].name, variableName);
-  
+
   //store the pointer to the value
   _variableList[_variableListSize - 1].variable = variable;
-  
+
   //store the type of the value
   _variableList[_variableListSize - 1].type = type;
-  
+
   //store the pointer to the variable that determines the number of elements. If it is not an array this has to be a nullptr
   _variableList[_variableListSize - 1].arraySize = arraySize;
 }
@@ -244,7 +244,7 @@ inline bool Device::Variable::IsArray()
 /*
  * Different AddValue functions for the different types
  */
- 
+
 void Device::_AddVariable(char* variableName, int8_t* variable, uint16_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::I8, arraySize);

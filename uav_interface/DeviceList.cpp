@@ -4,12 +4,12 @@
 DeviceList::DeviceList()
 {
   _length = 0;
-  _elements = nullptr;  
+  _elements = nullptr;
 }
 
 DeviceList::~DeviceList()
 {
-  if(_elements != nullptr)
+  if (_elements != nullptr)
   {
     free(_elements);
   }
@@ -24,7 +24,7 @@ void DeviceList::Add(Device* device)
 
 void DeviceList::UpdateAll()
 {
-  for(uint8_t i=0; i<_length; ++i)
+  for (uint8_t i = 0; i < _length; ++i)
   {
     _elements[i]->Update();
   }
@@ -37,7 +37,7 @@ uint8_t DeviceList::GetLength()
 
 Device* DeviceList::Get(uint8_t id)
 {
-  if(id < _length)
+  if (id < _length)
   {
     return _elements[id];
   }

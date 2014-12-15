@@ -5,11 +5,11 @@
 
 class Sensor42 : public Device
 {
-public:
+  public:
     Sensor42(char* name);
     void Update();
-    
-private:
+
+  private:
     uint32_t _value;
     uint8_t* _array;
     uint16_t _numberOfElements;

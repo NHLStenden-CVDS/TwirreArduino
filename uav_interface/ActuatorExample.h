@@ -6,11 +6,11 @@
 
 class ActuatorExample : public Device
 {
-public:
+  public:
     ActuatorExample(char* name, Stream* stream);
     void Update();
-    
-private:
+
+  private:
     uint32_t _value;
     uint32_t _oldValue;
     Stream* _stream;
