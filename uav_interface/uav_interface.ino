@@ -1,3 +1,5 @@
+#include <Wire.h>
+
 #include "RequestHandler.h"
 #include "Sensor42.h"
 #include "ActuatorExample.h"
@@ -19,6 +21,8 @@ ActuatorExample actuatorExample("actuatorExample", &Serial);
 
 DeviceList sensorList;
 DeviceList actuatorList;
+
+
 
 void setup()
 {

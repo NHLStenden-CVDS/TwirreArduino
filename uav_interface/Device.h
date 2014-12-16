@@ -70,6 +70,11 @@ class Device
      * Every sensor or actuator has to implement this method. It will be called continuously in the main loop.
      */
     virtual void Update() = 0;
+    
+    /**
+     * TODO: doc
+     */
+    virtual void ValuesChanged() {};
 
   protected:
     /**

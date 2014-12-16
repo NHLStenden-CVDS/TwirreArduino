@@ -30,6 +30,8 @@ void RequestHandler::SendAndReceive()
 void RequestHandler::_HandleRequest()
 {
   char opCode = _ReadOpcode();
+  
+  // TODO: every case to a sepparated handler!
   switch (opCode)
   {
       //All the cases should add a message to the queue!
@@ -64,58 +66,45 @@ void RequestHandler::_HandleRequest()
     case 'A':
       {
         uint8_t actuatorID = _ReadDeviceID();
-        if (actuatorID < _actuatorList->GetLength())
+        if ( !(actuatorID < _actuatorList->GetLength()) )
         {
-          Payload payload = _ReadPayload();
-          if (payload.size > 0 && payload.data != nullptr)
-          {
-            if (_Actuate(_actuatorList->Get(actuatorID), payload))
-            {
-              _AddToQueue('O');
-            }
-            else
-            {
-              _Error("Incorrect value ID for this actuator.");
-            }
-          }
-          else
-          {
-            _Error("Unexpected payload size.");
-          }
+           _Error("Incorrect actuator ID.");
+           break;
         }
-        else
+        Payload payload = _ReadPayload();
+        if ( !(payload.size > 0 && payload.data != nullptr) )
         {
-          _Error("Incorrect actuator ID.");
+          _Error("Unexpected payload size.");
+          break;
         }
+        if ( !(_Actuate(_actuatorList->Get(actuatorID), payload)))
+        {
+           _Error("Incorrect value ID for this actuator.");
+           break;
+        }    
+        _AddToQueue('O');
         break;
       }
     case 'S':
       {
         uint8_t sensorID = _ReadDeviceID();
-        if (sensorID < _sensorList->GetLength())
-        {
-          Payload payload = _ReadPayload();
-          if (payload.size > 0 && payload.data != nullptr)
-          {
-            Payload sensorData = _CreateSenseResponse(_sensorList->Get(sensorID), payload);
-            if (sensorData.size > 0 && sensorData.data.get() != nullptr)
-            {
-              _AddToQueue('O', sensorData);
-            }
-            else
-            {
-              _Error("Incorrect value ID for this sensor.");
-            }
-          }
-          else
-          {
-            _Error("Unexpected payload size.");
-          }
-        }
-        else
+        if ( !(sensorID < _sensorList->GetLength()))
         {
           _Error("Incorrect sensor ID.");
+          break;
         }
+        Payload payload = _ReadPayload();
+        if ( !(payload.size > 0 && payload.data != nullptr))
+        {
+          _Error("Unexpected payload size.");
+          break;
+        }
+        Payload sensorData = _CreateSenseResponse(_sensorList->Get(sensorID), payload);
+        if ( !(sensorData.size > 0 && sensorData.data.get() != nullptr))
+        {
+          _Error("Incorrect value ID for this sensor.");
+        }
+        _AddToQueue('O', sensorData);
         break;
       }
     case 'E':
@@ -179,6 +168,8 @@ bool RequestHandler::_Actuate(Device* actuator, Payload &payload)
     bytesToRead -= bytesRead;
     currentDataPosition += bytesRead;
   }
+  
+  actuator->ValuesChanged();
 
   return (bytesToRead == 0);
 }
