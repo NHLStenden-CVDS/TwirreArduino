@@ -3,12 +3,16 @@
 #include "RequestHandler.h"
 #include "Sensor42.h"
 #include "ActuatorExample.h"
+#include "Naza.h"
 
 RequestHandler* requestHandler;
 
 // create all sensor objects
 Sensor42 sensor42("sensor42");
 Sensor42 secondSensor42("secondSensor42");
+
+
+Naza * naza;
 //... feel free to add more ...
 //... remember to add them to the list in setup()
 //...
@@ -28,6 +32,8 @@ void setup()
 {
   Serial.begin(115200);
 
+  naza = new Naza("de naza flightcontroller");
+
   //add all sensors created above
   sensorList.Add(&sensor42);
   sensorList.Add(&secondSensor42);
@@ -35,6 +41,7 @@ void setup()
   
   //add all actuators created above
   actuatorList.Add(&actuatorExample);
+  actuatorList.Add(naza);
   //...
 
   //create request handler

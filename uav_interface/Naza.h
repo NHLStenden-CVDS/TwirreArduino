@@ -17,7 +17,7 @@ class Naza : public Device
     float _roll;
     float _gaz;
     uint32_t _timeout;
-    Adafruit_PWMServoDriver _PWMDriver;
+    Adafruit_PWMServoDriver * _PWMDriver;
 
 };
 
