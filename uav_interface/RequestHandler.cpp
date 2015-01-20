@@ -335,6 +335,10 @@ inline uint8_t RequestHandler::_ReadDeviceID()
 //returns the number of bytes sent
 uint16_t RequestHandler::_SendNextMessage()
 {
+  // make sure that the data in the tx buffer is not overwritten.
+  // this call returns when all left over data in the tx buffer is sent.
+  _stream->flush();
+  
   if (_messagesToSend)
   {
     uint16_t bytesWriten = _stream->write(_messageQueue[_currentMessage].data.get(), _messageQueue[_currentMessage].size);
