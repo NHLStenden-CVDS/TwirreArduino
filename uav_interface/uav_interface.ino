@@ -4,6 +4,7 @@
 #include "Sensor42.h"
 #include "ActuatorExample.h"
 #include "Naza.h"
+#include "SRFSonar.h"
 
 RequestHandler* requestHandler;
 
@@ -11,8 +12,9 @@ RequestHandler* requestHandler;
 Sensor42 sensor42("sensor42");
 Sensor42 secondSensor42("secondSensor42");
 
+SRFSonar * sRFSonar;
 
-Naza * naza;
+//Naza * naza;
 //... feel free to add more ...
 //... remember to add them to the list in setup()
 //...
@@ -30,18 +32,21 @@ DeviceList actuatorList;
 
 void setup()
 {
+  Wire.begin();
   Serial.begin(115200);
 
-  naza = new Naza("de naza flightcontroller");
+  //naza = new Naza("de naza flightcontroller");
+  sRFSonar = new SRFSonar("sonar1", 112, SRF08);
 
   //add all sensors created above
-  sensorList.Add(&sensor42);
-  sensorList.Add(&secondSensor42);
+  //sensorList.Add(&sensor42);
+  //sensorList.Add(&secondSensor42);
+  sensorList.Add(sRFSonar);
   //...
   
   //add all actuators created above
-  actuatorList.Add(&actuatorExample);
-  actuatorList.Add(naza);
+  //actuatorList.Add(&actuatorExample);
+  //actuatorList.Add(naza);
   //...
 
   //create request handler
