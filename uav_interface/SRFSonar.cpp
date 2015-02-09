@@ -80,6 +80,31 @@ void SRFSonar::startUltrasonicRanging()
   Wire.endTransmission();      // stop transmitting
 } 
 
+void SRFSonar::changeAddress(uint8_t address)
+{
+  Wire.beginTransmission(_I2CAddress);
+  Wire.write(byte(0x00));
+  Wire.write(byte(0xA0));
+  Wire.endTransmission(); 
+  
+  Wire.beginTransmission(_I2CAddress);
+  Wire.write(byte(0x00));
+  Wire.write(byte(0xAA));
+  Wire.endTransmission();
+  
+  Wire.beginTransmission(_I2CAddress);
+  Wire.write(byte(0x00));
+  Wire.write(byte(0xA5));
+  Wire.endTransmission();
+  
+  Wire.beginTransmission(_I2CAddress);
+  Wire.write(byte(0x00));
+  Wire.write(address);
+  Wire.endTransmission();
+  
+  _I2CAddress = address;
+}
+
 // Function which reads the value from the ultrasonic sensor.
  void SRFSonar::readUltrasonicSensorValue()
  {

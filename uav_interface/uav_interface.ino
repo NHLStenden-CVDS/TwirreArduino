@@ -36,7 +36,7 @@ void setup()
   Serial.begin(115200);
 
   //naza = new Naza("de naza flightcontroller");
-  sRFSonar = new SRFSonar("sonar1", 112, SRF08);
+  sRFSonar = new SRFSonar("sonar1", 120, SRF08);
 
   //add all sensors created above
   //sensorList.Add(&sensor42);

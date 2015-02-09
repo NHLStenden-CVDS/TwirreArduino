@@ -31,6 +31,7 @@ class SRFSonar : public Device
     */
     SRFSonar(char *name, uint8_t I2CAddress, SRFType type, uint8_t gain = 0x00, uint8_t range = 0x8C);
     void Update();
+    void changeAddress(uint8_t address);
 
   private:
     uint16_t *_lastReadingRaw;
