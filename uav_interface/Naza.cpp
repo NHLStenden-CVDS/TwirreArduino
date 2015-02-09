@@ -54,31 +54,23 @@ void Naza::ValuesChanged()
 
 // TODO: Add timeout to interupts
 int out = PWM_MIN;
+int dir = 1;
 void Naza::Update()
 {
-  while(out <= PWM_MAX)
+  out += dir;
+  if(out > PWM_MAX)
   {
-    _PWMDriver->setPWM(PITCH_CHANNEL, 0, out);
-    _PWMDriver->setPWM(ROLL_CHANNEL, 0, out);
-    _PWMDriver->setPWM(YAW_CHANNEL, 0, out);
-    _PWMDriver->setPWM(GAZ_CHANNEL, 0, out);
-    
-    out ++;
-    delay(10);
+    out = PWM_MAX;
+    dir = -1; 
   }
-  out = PWM_MAX;
-  delay(1000);
-  while(out >= PWM_MIN)
+  if(out < PWM_MIN)
   {
-    _PWMDriver->setPWM(PITCH_CHANNEL, 0, out);
-    _PWMDriver->setPWM(ROLL_CHANNEL, 0, out);
-    _PWMDriver->setPWM(YAW_CHANNEL, 0, out);
-    _PWMDriver->setPWM(GAZ_CHANNEL, 0, out);
-    
-    out --;
-    delay(10);
+    out = PWM_MIN;
+    dir = 1; 
   }
-  out = PWM_MIN;
-  delay(1000);
+  
+  _PWMDriver->setPWM(PITCH_CHANNEL, 0, out);
+  _PWMDriver->setPWM(ROLL_CHANNEL, 0, out);
+  _PWMDriver->setPWM(YAW_CHANNEL, 0, out);
+  _PWMDriver->setPWM(GAZ_CHANNEL, 0, out);
 }
-
