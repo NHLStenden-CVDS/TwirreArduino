@@ -71,7 +71,7 @@ uint16_t Device::SetVariable(uint8_t variableID, void* variable)
     }
 
     uint16_t size = elementSize * nrOfElements;
-    memcpy(_variableList[variableID].variable, currentBufferPosition, elementSize * nrOfElements);
+    memcpy(_variableList[variableID].variable, currentBufferPosition, size);
     totalSize += size;
 
     return totalSize;

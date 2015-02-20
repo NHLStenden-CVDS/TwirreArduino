@@ -2,7 +2,7 @@
 #include <cstring>
 #include <cstdlib>
 
-#define DEBUG
+//#define DEBUG
 
 RequestHandler::RequestHandler(DeviceList* sensorList, DeviceList* actuatorList, Stream* stream)
 {
@@ -304,7 +304,7 @@ Payload RequestHandler::_ReadPayload()
 #ifdef DEBUG
     size = atoi((char*)&size);
 #endif
-    uint8_t expectedPayloadSize = size;
+    uint16_t expectedPayloadSize = size;
     if (size > 0)
     {
       char* data = new char[size];

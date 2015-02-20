@@ -21,6 +21,8 @@ Naza::Naza(char* name) : Device(name, "With this actuator you can control Naza f
   // 12 bits PWM resolution
   analogWriteResolution(12);
   
+  _timeout = 0;
+  
   // TC1 channel 0, the IRQ for that channel and the desired frequency
   startTimer(TC1, 0, TC3_IRQn, 1000); 
    
@@ -31,7 +33,13 @@ Naza::Naza(char* name) : Device(name, "With this actuator you can control Naza f
   _AddVariable("gaz", &_gaz);
   _AddVariable("timeout", &_timeout);
   
+  _pitch = 0.0f;
+  _roll = 0.0f;
+  _yaw = 0.0f;
+  _gaz = -1.0f;
+    
   writeDefaultStickValues();
+  analogWrite(GAZ_CHANNEL, PWM_MIN);
 }
 
 void Naza::writeDefaultStickValues()
@@ -39,7 +47,7 @@ void Naza::writeDefaultStickValues()
   analogWrite(PITCH_CHANNEL, PWM_MIDDLE);
   analogWrite(ROLL_CHANNEL, PWM_MIDDLE);
   analogWrite(YAW_CHANNEL, PWM_MIDDLE);
-  analogWrite(GAZ_CHANNEL, PWM_MIN);
+  analogWrite(GAZ_CHANNEL, PWM_MIDDLE);
 }
 
 //timer handler TC1 ch 0
@@ -49,6 +57,8 @@ void TC3_Handler()
   TC_GetStatus(TC1, 0);
   
   uint32_t* timeout = Naza::Instance()->getTimeout();
+  if(*timeout == 0) return;
+  
   if(--*timeout == 0)
   {
     Naza::Instance()->writeDefaultStickValues();
@@ -57,15 +67,18 @@ void TC3_Handler()
 
 void Naza::ValuesChanged()
 {
-  uint16_t pulselengthPitch = map(_pitch, -1, 1, PWM_MIN, PWM_MAX);
-  uint16_t pulselengthRoll = map(_roll, -1, 1, PWM_MIN, PWM_MAX);
-  uint16_t pulselengthYaw = map(_yaw, -1, 1, PWM_MIN, PWM_MAX);
-  uint16_t pulselengthGaz = map(_gaz, -1, 1, PWM_MIN, PWM_MAX);
-
-  analogWrite(PITCH_CHANNEL, pulselengthPitch);
-  analogWrite(ROLL_CHANNEL, pulselengthRoll);
-  analogWrite(YAW_CHANNEL, pulselengthYaw);
-  analogWrite(GAZ_CHANNEL, pulselengthGaz);
+  if(_timeout > 0)
+  {  
+    uint16_t pulselengthPitch = map((_pitch * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+    uint16_t pulselengthRoll = map((_roll * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+    uint16_t pulselengthYaw = map((_yaw * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+    uint16_t pulselengthGaz = map((_gaz * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+  
+    analogWrite(PITCH_CHANNEL, pulselengthPitch);
+    analogWrite(ROLL_CHANNEL, pulselengthRoll);
+    analogWrite(YAW_CHANNEL, pulselengthYaw);
+    analogWrite(GAZ_CHANNEL, pulselengthGaz);
+  }
 }
 
 // TODO: Add timeout to interupts
