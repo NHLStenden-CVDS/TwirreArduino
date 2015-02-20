@@ -32,10 +32,17 @@ DeviceList actuatorList;
 
 void setup()
 {
+  pinMode(22, OUTPUT);
+  digitalWrite(22, HIGH);
+  
   Wire.begin();
+  Wire1.begin();
   Serial.begin(115200);
+  
+  //delay to stabilize power and stuff
+  delay(1500);
 
-  naza = new Naza("de naza flightcontroller", 0x41);
+  naza = new Naza("de naza flightcontroller");
   sRFSonar = new SRFSonar("sonar1", 120, SRF08);
 
   //add all sensors created above
@@ -53,8 +60,23 @@ void setup()
   requestHandler = new RequestHandler(&sensorList, &actuatorList, &Serial);
 }
 
+int ctr = 0;
+
 void loop()
 {
+  
+  if(ctr == 0)
+    digitalWrite(22, LOW);
+   
+   ctr++;
+   
+  if(ctr >= 9)
+  {
+    ctr = -1;
+    digitalWrite(22, HIGH);
+  }
+  
+  
   requestHandler->SendAndReceive();
   sensorList.UpdateAll();
   actuatorList.UpdateAll();

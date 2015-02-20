@@ -114,26 +114,22 @@ void SRFSonar::changeAddress(uint8_t address)
   Wire.endTransmission();      // stop transmitting
 
   // step 4: request reading from sensor
-  Wire.requestFrom(_I2CAddress, (uint8_t)33);    // request 2 bytes from slave device #112
-  Serial.print(1);
-  Serial.print("  ");
-  Serial.println(Wire.available());
- // delay(10);
+  Wire.requestFrom(_I2CAddress, (uint8_t)_nrOfBytesToRead);    // request 2 bytes from slave device #112
   
  // Wire.read();
   // step 5: receive reading from sensor
-  //if(_nrOfBytesToRead <= Wire.available())    // if two bytes were received
+  if(_nrOfBytesToRead <= Wire.available())    // if two bytes were received
   {
     if(_hasLightSensor)
     {
-      //_lightSensorValue = Wire.read();
+      _lightSensorValue = Wire.read();
     }
     
     for(int i = 0; i < _lastReadingRawLength; i++)
     {
-      //_lastReadingRaw[i] = Wire.read();
+      _lastReadingRaw[i] = Wire.read();
       _lastReadingRaw[i] = _lastReadingRaw[i] << 8;
-      //_lastReadingRaw[i] |= Wire.read();
+      _lastReadingRaw[i] |= Wire.read();
     }
   }
 }

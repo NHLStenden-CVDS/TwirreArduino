@@ -2,12 +2,11 @@
 #define NAZA_H_
 
 #include "Device.h"
-#include "Adafruit_PWMServoDriver.h"
 
 class Naza : public Device
 {
   public:
-    Naza(char* name, uint8_t servoDriverAddress = 0x40);
+    Naza(char* name);
     void Update();
     void ValuesChanged();
 
@@ -17,7 +16,6 @@ class Naza : public Device
     float _roll;
     float _gaz;
     uint32_t _timeout;
-    Adafruit_PWMServoDriver * _PWMDriver;
 
 };
 
