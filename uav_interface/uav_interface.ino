@@ -42,7 +42,7 @@ void setup()
   //delay to stabilize power and stuff
   delay(1500);
 
-  naza = new Naza("de naza flightcontroller");
+  naza = Naza::Initialize("The naza flight controller");
   sRFSonar = new SRFSonar("sonar1", 120, SRF08);
 
   //add all sensors created above

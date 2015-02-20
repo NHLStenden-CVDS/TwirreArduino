@@ -21,4 +21,3 @@ void Sensor42::Update()
     _array[i] = rand() % 26 + 65; //random capital letter
   }
 }
-

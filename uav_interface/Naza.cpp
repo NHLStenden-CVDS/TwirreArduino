@@ -11,25 +11,48 @@
 
 #define PITCH_CHANNEL 6
 #define ROLL_CHANNEL 7
-#define YAW_CHANNEL 4
-#define GAZ_CHANNEL 5
-#define CONTROL_CHANNEL 8
+#define YAW_CHANNEL 8
+#define GAZ_CHANNEL 9
+
+Naza* Naza::_instance = nullptr;
 
 Naza::Naza(char* name) : Device(name, "With this actuator you can control Naza flight controllers")
 {
+  // 12 bits PWM resolution
   analogWriteResolution(12);
   
-  //we add the variable so it can be changed
+  // TC1 channel 0, the IRQ for that channel and the desired frequency
+  startTimer(TC1, 0, TC3_IRQn, 1000); 
+   
+  // we add the variables so they can be changed
   _AddVariable("pitch", &_pitch);
   _AddVariable("roll", &_roll);
   _AddVariable("yaw", &_yaw);
   _AddVariable("gaz", &_gaz);
   _AddVariable("timeout", &_timeout);
   
+  writeDefaultStickValues();
+}
+
+void Naza::writeDefaultStickValues()
+{
   analogWrite(PITCH_CHANNEL, PWM_MIDDLE);
   analogWrite(ROLL_CHANNEL, PWM_MIDDLE);
   analogWrite(YAW_CHANNEL, PWM_MIDDLE);
-  analogWrite(GAZ_CHANNEL, PWM_MIDDLE);
+  analogWrite(GAZ_CHANNEL, PWM_MIN);
+}
+
+//timer handler TC1 ch 0
+void TC3_Handler()
+{
+  // Clear interrupt status
+  TC_GetStatus(TC1, 0);
+  
+  uint32_t* timeout = Naza::Instance()->getTimeout();
+  if(--*timeout == 0)
+  {
+    Naza::Instance()->writeDefaultStickValues();
+  }
 }
 
 void Naza::ValuesChanged()
@@ -50,20 +73,38 @@ int out = PWM_MIN;
 int dir = 1;
 void Naza::Update()
 {
-  out += dir;
-  if(out > PWM_MAX)
-  {
-    out = PWM_MAX;
-    dir = -1; 
-  }
-  if(out < PWM_MIN)
-  {
-    out = PWM_MIN;
-    dir = 1; 
-  }
-  
-  analogWrite(PITCH_CHANNEL, out);
-  analogWrite(ROLL_CHANNEL, out);
-  analogWrite(YAW_CHANNEL, out);
-  analogWrite(GAZ_CHANNEL, out);
 }
+
+uint32_t * Naza::getTimeout()
+{
+  return &_timeout;
+}
+
+void Naza::startTimer(Tc *tc, uint32_t channel, IRQn_Type irq, uint32_t frequency) {
+  pmc_set_writeprotect(false);
+  pmc_enable_periph_clk((uint32_t)irq);
+  TC_Configure(tc, channel, TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC | TC_CMR_TCCLKS_TIMER_CLOCK4);
+  uint32_t rc = VARIANT_MCK/128/frequency; //128 because we selected TIMER_CLOCK4 above
+  TC_SetRA(tc, channel, rc/2); //50% high, 50% low
+  TC_SetRC(tc, channel, rc);
+  TC_Start(tc, channel);
+  tc->TC_CHANNEL[channel].TC_IER=TC_IER_CPCS;
+  tc->TC_CHANNEL[channel].TC_IDR=~TC_IER_CPCS;
+  NVIC_EnableIRQ(irq);
+}
+
+Naza* Naza::Initialize(char* name)
+{
+  if(_instance == nullptr)
+  {
+    _instance = new Naza(name);
+  }
+  return _instance;    
+}
+
+Naza* Naza::Instance()
+{
+    return _instance;
+}
+
+
