@@ -5,6 +5,7 @@
 #include "ActuatorExample.h"
 #include "Naza.h"
 #include "SRFSonar.h"
+#include "AHRSplus.h"
 
 RequestHandler* requestHandler;
 
@@ -15,6 +16,8 @@ Sensor42 secondSensor42("secondSensor42");
 SRFSonar * sRFSonar;
 
 Naza * naza;
+
+AHRSplus * aHRS;
 //... feel free to add more ...
 //... remember to add them to the list in setup()
 //...
@@ -44,11 +47,13 @@ void setup()
 
   naza = Naza::Initialize("The naza flight controller");
   sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+  aHRS = new AHRSplus("myAHRS+");
 
   //add all sensors created above
   //sensorList.Add(&sensor42);
   //sensorList.Add(&secondSensor42);
   sensorList.Add(sRFSonar);
+  sensorList.Add(aHRS);
   //...
   
   //add all actuators created above
