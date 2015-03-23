@@ -1,67 +1,102 @@
 #include "AHRSplus.h"
 #include <Wire.h>
 #define ADDRESS 0x20
+#define I2C_READ_TIMEOUT 10000
+#define LOOP_SKIP_MICROSECONDS 10000
 
 AHRSplus::AHRSplus(char* name) : Device(name, "This is the myAHRS+ sensor. It is a fancy IMU or 'attitude heading reference system'")
 {
-  _AddVariable("accX", &_accX);
-  _AddVariable("accY", &_accY);
-  _AddVariable("accZ", &_accZ);
-  _AddVariable("gyroX", &_gyroX);
-  _AddVariable("gyroY", &_gyroY);
-  _AddVariable("gyroZ", &_gyroZ);
-  _AddVariable("magX", &_magX);
-  _AddVariable("magY", &_magY);
-  _AddVariable("magZ", &_magZ);
-  _AddVariable("temp", &_temp);
-  _AddVariable("roll", &_roll);
-  _AddVariable("pitch", &_pitch);
-  _AddVariable("yaw", &_yaw);
-  _AddVariable("quaternionX", &_quaternionX);
-  _AddVariable("quaternionY", &_quaternionY);
-  _AddVariable("quaternionZ", &_quaternionZ);
-  _AddVariable("quaternionW", &_quaternionW);
+  _time = micros();
   
+  _AddVariable("accX", &_normalizedData.accX);
+  _AddVariable("accY", &_normalizedData.accY);
+  _AddVariable("accZ", &_normalizedData.accZ);
+  _AddVariable("gyroX", &_normalizedData.gyroX);
+  _AddVariable("gyroY", &_normalizedData.gyroY);
+  _AddVariable("gyroZ", &_normalizedData.gyroZ);
+  _AddVariable("magX", &_normalizedData.magX);
+  _AddVariable("magY", &_normalizedData.magY);
+  _AddVariable("magZ", &_normalizedData.magZ);
+  _AddVariable("temp", &_normalizedData.temp);
+  _AddVariable("roll", &_normalizedData.roll);
+  _AddVariable("pitch", &_normalizedData.pitch);
+  _AddVariable("yaw", &_normalizedData.yaw);
+  _AddVariable("quaternionX", &_normalizedData.quaternionX);
+  _AddVariable("quaternionY", &_normalizedData.quaternionY);
+  _AddVariable("quaternionZ", &_normalizedData.quaternionZ);
+  _AddVariable("quaternionW", &_normalizedData.quaternionW);
 }
+
 
 void AHRSplus::Update()
 {
-	uint8_t address = 0x10;
-  _accX = registerRead(2 * (address++));
-  _accY = registerRead(2 * (address++));
-  _accZ = registerRead(2 * (address++));
-  _gyroX = registerRead(2 * (address++));
-  _gyroY = registerRead(2 * (address++));
-  _gyroZ = registerRead(2 * (address++));
-  _magX = registerRead(2 * (address++));
-  _magY = registerRead(2 * (address++));
-  _magZ = registerRead(2 * (address++));
-  _temp = registerRead(2 * (address++));
-  _roll = registerRead(2 * (address++));
-  _pitch = registerRead(2 * (address++));
-  _yaw = registerRead(2 * (address++));
-  _quaternionX = registerRead(2 * (address++));
-  _quaternionY = registerRead(2 * (address++)); 
-  _quaternionZ = registerRead(2 * (address++));
-  _quaternionW = registerRead(2 * (address++));
-  
+  if(micros() - _time >= LOOP_SKIP_MICROSECONDS)
+  {
+    readBytes(reinterpret_cast<uint8_t*>(&_data), 0x22, sizeof(AHRSdata));
+    _time = micros();
+    dataToNormalizedData();
+  }
 }
 
-uint16_t AHRSplus::registerRead(uint8_t  registerAddress)
-{  
-  TWI_StartRead(WIRE_INTERFACE, ADDRESS, registerAddress,1);
-  TWI_SendSTOPCondition(WIRE_INTERFACE);
-  while(!TWI_ByteReceived(WIRE_INTERFACE));
-  uint8_t lsb = TWI_ReadByte(WIRE_INTERFACE);
-  while(!TWI_TransferComplete(WIRE_INTERFACE));
+
+void AHRSplus::dataToNormalizedData()
+{
+  _normalizedData.accX = (16.0f / 32767.0f) * static_cast<float>(_data.accX);
+  _normalizedData.accY = (16.0f / 32767.0f) * static_cast<float>(_data.accY);
+  _normalizedData.accZ = (16.0f / 32767.0f) * static_cast<float>(_data.accZ);
+  _normalizedData.gyroX = (2000.0f / 32767.0f) * static_cast<float>(_data.gyroX);
+  _normalizedData.gyroY = (2000.0f / 32767.0f) * static_cast<float>(_data.gyroY);
+  _normalizedData.gyroZ = (2000.0f / 32767.0f) * static_cast<float>(_data.gyroZ);
+  _normalizedData.magX =  static_cast<float>(_data.magX);
+  _normalizedData.magY =  static_cast<float>(_data.magY);
+  _normalizedData.magZ =  static_cast<float>(_data.magZ);
+  _normalizedData.temp = (200.0f / 32767.0f) * static_cast<float>(_data.temp);
+  _normalizedData.roll = (180.0f / 32767.0f) * static_cast<float>(_data.roll);
+  _normalizedData.pitch = (180.0f / 32767.0f) * static_cast<float>(_data.pitch);
+  _normalizedData.yaw = (180.0f / 32767.0f) * static_cast<float>(_data.yaw);
+  _normalizedData.quaternionX = static_cast<float>(_data.quaternionX) / 32767.0f;
+  _normalizedData.quaternionY = static_cast<float>(_data.quaternionY) / 32767.0f;
+  _normalizedData.quaternionZ = static_cast<float>(_data.quaternionZ) / 32767.0f;
+  _normalizedData.quaternionW = static_cast<float>(_data.quaternionW) / 32767.0f;
+}
+
+
+bool waitByteReceived(unsigned long timeout)
+{
+  unsigned long started = micros();
+  while(!TWI_ByteReceived(WIRE1_INTERFACE) && (micros() - started < timeout));
   
-  TWI_StartRead(WIRE_INTERFACE, ADDRESS, registerAddress + 1,1);
-  TWI_SendSTOPCondition(WIRE_INTERFACE);
-  while(!TWI_ByteReceived(WIRE_INTERFACE));
-  uint8_t msb = TWI_ReadByte(WIRE_INTERFACE);
-  while(!TWI_TransferComplete(WIRE_INTERFACE));
+  return (micros() - started < timeout);
+}
+
+
+bool waitTransferComplete(unsigned long timeout)
+{
+  unsigned long started = micros();
+  while(!TWI_TransferComplete(WIRE1_INTERFACE) && (micros() - started < timeout));
   
-  uint16_t combined = 0;
-  combined = (msb << 8) | lsb;
-  return combined;
+  return (micros() - started < timeout);
+}
+
+
+uint16_t AHRSplus::readBytes(uint8_t* dest, uint8_t regAddress, int count)
+{
+   TWI_StartRead(WIRE1_INTERFACE, ADDRESS, regAddress,1);
+   
+   //read all bytes except last one
+   for(int i = 0; i < (count - 1); i++)
+   {
+     if(!waitByteReceived(I2C_READ_TIMEOUT)) return i;
+     dest[i] = TWI_ReadByte(WIRE1_INTERFACE);
+   }
+   
+   //set stop condition before reading final byte
+   TWI_SendSTOPCondition(WIRE1_INTERFACE);
+   if(!waitByteReceived(I2C_READ_TIMEOUT)) return count - 1;
+   dest[count - 1] = TWI_ReadByte(WIRE1_INTERFACE);
+   
+   //wait for completion of transfer
+   waitTransferComplete(I2C_READ_TIMEOUT);
+   
+   return count;
 }

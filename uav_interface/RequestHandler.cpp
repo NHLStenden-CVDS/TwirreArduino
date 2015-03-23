@@ -2,7 +2,7 @@
 #include <cstring>
 #include <cstdlib>
 
-#define DEBUG
+//#define DEBUG
 
 RequestHandler::RequestHandler(DeviceList* sensorList, DeviceList* actuatorList, Stream* stream)
 {

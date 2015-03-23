@@ -40,17 +40,18 @@ void setup()
   
   Wire.begin();
   Wire1.begin();
-  Serial.begin(115200);
+  Wire1.setClock(200000);
   
+  SerialUSB.begin(115200);
   //delay to stabilize power and stuff
   delay(1500);
 
-  naza = Naza::Initialize("The naza flight controller");
+  //naza = Naza::Initialize("The naza flight controller");
   sRFSonar = new SRFSonar("sonar1", 120, SRF08);
   aHRS = new AHRSplus("myAHRS+");
 
   //add all sensors created above
-  //sensorList.Add(&sensor42);
+  sensorList.Add(&sensor42);
   //sensorList.Add(&secondSensor42);
   sensorList.Add(sRFSonar);
   sensorList.Add(aHRS);
@@ -58,11 +59,18 @@ void setup()
   
   //add all actuators created above
   //actuatorList.Add(&actuatorExample);
-  actuatorList.Add(naza);
+ // actuatorList.Add(naza);
   //...
 
+
+  //  clear the buffer
+  while(SerialUSB.available())
+  {
+    SerialUSB.read();
+  }
+  
   //create request handler
-  requestHandler = new RequestHandler(&sensorList, &actuatorList, &Serial);
+  requestHandler = new RequestHandler(&sensorList, &actuatorList, &SerialUSB);
 }
 
 int ctr = 0;
@@ -75,9 +83,9 @@ void loop()
    
    ctr++;
    
-  if(ctr >= 9)
+  if(ctr >= 44)
   {
-    ctr = -1;
+    ctr = -6;
     digitalWrite(22, HIGH);
   }
   
