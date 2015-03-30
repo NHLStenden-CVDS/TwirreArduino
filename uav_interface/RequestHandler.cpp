@@ -96,7 +96,9 @@ void RequestHandler::_HandleRequest()
         Payload payload = _ReadPayload();
         if ( !(payload.size > 0 && payload.data != nullptr))
         {
-          _Error("Unexpected payload size.");
+          char emsg[45];
+          sprintf(emsg, "Unexpected payload size. size=%d", payload.size);
+          _Error(emsg);
           break;
         }
         Payload sensorData = _CreateSenseResponse(_sensorList->Get(sensorID), payload);
@@ -298,7 +300,7 @@ inline char RequestHandler::_ReadOpcode()
 
 Payload RequestHandler::_ReadPayload()
 {
-  uint16_t size;
+  uint16_t size = 0;
   if (_stream->readBytes((char*)&size, 2) == 2) //read the size of the payload, which is a uint16_t
   {
 #ifdef DEBUG
@@ -319,7 +321,7 @@ Payload RequestHandler::_ReadPayload()
       }
     }
   }
-  return Payload(nullptr, 0); //return if not successful
+  return Payload(nullptr, size); //return if not successful
 }
 
 inline uint8_t RequestHandler::_ReadDeviceID()

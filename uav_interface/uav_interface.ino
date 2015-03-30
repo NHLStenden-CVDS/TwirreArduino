@@ -10,8 +10,8 @@
 RequestHandler* requestHandler;
 
 // create all sensor objects
-Sensor42 sensor42("sensor42");
-Sensor42 secondSensor42("secondSensor42");
+//Sensor42 sensor42("sensor42");
+//Sensor42 secondSensor42("secondSensor42");
 
 SRFSonar * sRFSonar;
 
@@ -43,15 +43,16 @@ void setup()
   Wire1.setClock(200000);
   
   SerialUSB.begin(115200);
+  SerialUSB.setTimeout(50);
   //delay to stabilize power and stuff
-  delay(1500);
+  delay(2500);
 
-  //naza = Naza::Initialize("The naza flight controller");
+  naza = Naza::Initialize("naza");
   sRFSonar = new SRFSonar("sonar1", 120, SRF08);
   aHRS = new AHRSplus("myAHRS+");
 
   //add all sensors created above
-  sensorList.Add(&sensor42);
+  //sensorList.Add(&sensor42);
   //sensorList.Add(&secondSensor42);
   sensorList.Add(sRFSonar);
   sensorList.Add(aHRS);
@@ -59,7 +60,7 @@ void setup()
   
   //add all actuators created above
   //actuatorList.Add(&actuatorExample);
- // actuatorList.Add(naza);
+  actuatorList.Add(naza);
   //...
 
 
