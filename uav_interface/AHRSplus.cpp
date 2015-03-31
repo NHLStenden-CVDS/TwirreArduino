@@ -52,8 +52,11 @@ void AHRSplus::dataToNormalizedData()
   _normalizedData.magZ =  static_cast<float>(_data.magZ);
   _normalizedData.temp = (200.0f / 32767.0f) * static_cast<float>(_data.temp);
   _normalizedData.roll = (180.0f / 32767.0f) * static_cast<float>(_data.roll);
+  if(_normalizedData.roll >= 180.0f) _normalizedData.roll -= 360.0f;
   _normalizedData.pitch = (180.0f / 32767.0f) * static_cast<float>(_data.pitch);
+  if(_normalizedData.pitch >= 180.0f) _normalizedData.pitch -= 360.0f;
   _normalizedData.yaw = (180.0f / 32767.0f) * static_cast<float>(_data.yaw);
+  if(_normalizedData.yaw >= 180.0f) _normalizedData.yaw -= 360.0f;
   _normalizedData.quaternionX = static_cast<float>(_data.quaternionX) / 32767.0f;
   _normalizedData.quaternionY = static_cast<float>(_data.quaternionY) / 32767.0f;
   _normalizedData.quaternionZ = static_cast<float>(_data.quaternionZ) / 32767.0f;

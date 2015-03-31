@@ -40,7 +40,7 @@ void setup()
   
   Wire.begin();
   Wire1.begin();
-  Wire1.setClock(200000);
+  Wire1.setClock(100000);
   
   SerialUSB.begin(115200);
   SerialUSB.setTimeout(50);
@@ -84,9 +84,9 @@ void loop()
    
    ctr++;
    
-  if(ctr >= 44)
+  if(ctr >= 2)
   {
-    ctr = -6;
+    ctr = 0;
     digitalWrite(22, HIGH);
   }
   

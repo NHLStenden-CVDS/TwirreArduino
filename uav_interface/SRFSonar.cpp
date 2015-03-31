@@ -24,6 +24,7 @@ SRFSonar::SRFSonar(char* name, uint8_t I2CAddress, SRFType type, uint8_t gain, u
   }
   _lastReadingRaw = (uint16_t *)malloc(sizeof(uint16_t) * _lastReadingRawLength);
   
+  _AddVariable("firstDistance", _lastReadingRaw);
   _AddVariable("distanceValues", _lastReadingRaw, &_lastReadingRawLength);
   if(_hasLightSensor)
   {

@@ -65,10 +65,15 @@ void TC3_Handler()
   }
 }
 
+#define CLAMP(X) (X) = ((X) < -1.0f) ? -1.0f : ((X) > 1.0f) ? 1.0f : (X);
 void Naza::ValuesChanged()
 {
   if(_timeout > 0)
-  {  
+  {
+    CLAMP(_pitch);
+    CLAMP(_roll);
+    CLAMP(_yaw);
+    CLAMP(_gaz);
     uint16_t pulselengthPitch = map((_pitch * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
     uint16_t pulselengthRoll = map((_roll * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
     uint16_t pulselengthYaw = map((_yaw * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
@@ -81,9 +86,6 @@ void Naza::ValuesChanged()
   }
 }
 
-// TODO: Add timeout to interupts
-int out = PWM_MIN;
-int dir = 1;
 void Naza::Update()
 {
 }
