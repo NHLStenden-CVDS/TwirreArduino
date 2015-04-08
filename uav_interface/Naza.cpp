@@ -3,11 +3,14 @@
 
 //#include "Adafruit_PWMServoDriver.h"
 //225, 900
-#define PWM_MIN 2250
+//#define PWM_MIN 2250
+#define PWM_MIN 9000
 //389, 1556
-#define PWM_MAX 3890
+//#define PWM_MAX 3890
+#define PWM_MAX 15560
 //307, 1228
-#define PWM_MIDDLE 3070
+//#define PWM_MIDDLE 3070
+#define PWM_MIDDLE 12280
 
 #define PITCH_CHANNEL 6
 #define ROLL_CHANNEL 7
@@ -18,8 +21,22 @@ Naza* Naza::_instance = nullptr;
 
 Naza::Naza(char* name) : Device(name, "With this actuator you can control Naza flight controllers")
 {
-  // 12 bits PWM resolution
-  analogWriteResolution(12);
+  //setup PWM
+  //12 bit, 500Hz
+  pmc_enable_periph_clk( PWM_INTERFACE_ID );
+  int clockFreq = 0x00003FFF * 500;
+  PWMC_ConfigureClocks( clockFreq, clockFreq, VARIANT_MCK ); //both clock A and B set to 500Hz
+  
+  //configure the pins for PWM
+  for(int i = 6; i <= 9; i++)
+  {
+    uint32_t chan = g_APinDescription[i].ulPWMChannel; 
+    PIO_Configure( g_APinDescription[i].pPort, g_APinDescription[i].ulPinType, g_APinDescription[i].ulPin, g_APinDescription[i].ulPinConfiguration);
+    PWMC_ConfigureChannel(PWM_INTERFACE, chan, PWM_CMR_CPRE_CLKA, 0, 0);
+    PWMC_SetPeriod(PWM_INTERFACE, chan, 0x00003FFF);  //set for 12-bit pwm
+    PWMC_SetDutyCycle(PWM_INTERFACE, chan, 0); // The 0 is the initial duty cycle
+    PWMC_EnableChannel(PWM_INTERFACE, chan); 
+  }
   
   _timeout = 0;
   
@@ -43,10 +60,10 @@ Naza::Naza(char* name) : Device(name, "With this actuator you can control Naza f
 
 void Naza::writeDefaultStickValues()
 {
-  analogWrite(PITCH_CHANNEL, PWM_MIDDLE);
-  analogWrite(ROLL_CHANNEL, PWM_MIDDLE);
-  analogWrite(YAW_CHANNEL, PWM_MIDDLE);
-  analogWrite(GAZ_CHANNEL, PWM_MIDDLE);
+  PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[PITCH_CHANNEL].ulPWMChannel, PWM_MIDDLE);
+  PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[ROLL_CHANNEL].ulPWMChannel, PWM_MIDDLE);
+  PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[YAW_CHANNEL].ulPWMChannel, PWM_MIDDLE);
+  PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, PWM_MIDDLE);
 }
 
 //timer handler TC1 ch 0
@@ -78,40 +95,15 @@ void Naza::ValuesChanged()
     uint16_t pulselengthYaw = map((_yaw * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
     uint16_t pulselengthGaz = map((_gaz * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
   
-    //analogWrite(PITCH_CHANNEL, pulselengthPitch);
-    analogWrite(ROLL_CHANNEL, pulselengthRoll);
-    analogWrite(YAW_CHANNEL, pulselengthYaw);
-    //analogWrite(GAZ_CHANNEL, pulselengthGaz);
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[PITCH_CHANNEL].ulPWMChannel, pulselengthPitch);
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[ROLL_CHANNEL].ulPWMChannel, pulselengthRoll);
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[YAW_CHANNEL].ulPWMChannel, pulselengthYaw);
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, pulselengthGaz);
   }
 }
 
-
-int step = 1;
-int stepctr = 0;
-int steptop = 300;
-int cur = PWM_MIN;
 void Naza::Update()
 {
-  /*
-  _timeout = 200000;
-  stepctr++;
-  if(stepctr < steptop) return;
-  stepctr = 0;
-  
-  cur += step;
-  if(cur >= PWM_MAX)
-  {
-    cur = PWM_MAX;
-    step = -step;
-  }
-  if(cur <= PWM_MIN)
-  {
-    cur = PWM_MIN;
-    step = -step; 
-  }
-  analogWrite(GAZ_CHANNEL, cur);
-  analogWrite(PITCH_CHANNEL, cur);
-  */
 }
 
 uint32_t * Naza::getTimeout()
