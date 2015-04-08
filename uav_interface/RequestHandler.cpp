@@ -101,6 +101,7 @@ void RequestHandler::_HandleRequest()
           _Error(emsg);
           break;
         }
+        
         Payload sensorData = _CreateSenseResponse(_sensorList->Get(sensorID), payload);
         if ( !(sensorData.size > 0 && sensorData.data.get() != nullptr))
         {
@@ -177,7 +178,9 @@ bool RequestHandler::_Actuate(Device* actuator, Payload &payload)
 }
 
 Payload RequestHandler::_CreateSenseResponse(Device* sensor, Payload &request)
-{
+{ 
+  sensor->OnRequest();
+  
   uint8_t nrOfVariables = sensor->GetNumberOfVariables();
 
   //Get the size of the data

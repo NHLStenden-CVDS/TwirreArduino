@@ -36,10 +36,9 @@ Naza::Naza(char* name) : Device(name, "With this actuator you can control Naza f
   _pitch = 0.0f;
   _roll = 0.0f;
   _yaw = 0.0f;
-  _gaz = -1.0f;
+  _gaz = 0.0f;
     
   writeDefaultStickValues();
-  analogWrite(GAZ_CHANNEL, PWM_MIN);
 }
 
 void Naza::writeDefaultStickValues()
@@ -79,15 +78,40 @@ void Naza::ValuesChanged()
     uint16_t pulselengthYaw = map((_yaw * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
     uint16_t pulselengthGaz = map((_gaz * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
   
-    analogWrite(PITCH_CHANNEL, pulselengthPitch);
+    //analogWrite(PITCH_CHANNEL, pulselengthPitch);
     analogWrite(ROLL_CHANNEL, pulselengthRoll);
     analogWrite(YAW_CHANNEL, pulselengthYaw);
-    analogWrite(GAZ_CHANNEL, pulselengthGaz);
+    //analogWrite(GAZ_CHANNEL, pulselengthGaz);
   }
 }
 
+
+int step = 1;
+int stepctr = 0;
+int steptop = 300;
+int cur = PWM_MIN;
 void Naza::Update()
 {
+  /*
+  _timeout = 200000;
+  stepctr++;
+  if(stepctr < steptop) return;
+  stepctr = 0;
+  
+  cur += step;
+  if(cur >= PWM_MAX)
+  {
+    cur = PWM_MAX;
+    step = -step;
+  }
+  if(cur <= PWM_MIN)
+  {
+    cur = PWM_MIN;
+    step = -step; 
+  }
+  analogWrite(GAZ_CHANNEL, cur);
+  analogWrite(PITCH_CHANNEL, cur);
+  */
 }
 
 uint32_t * Naza::getTimeout()

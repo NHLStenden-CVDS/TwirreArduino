@@ -25,6 +25,14 @@ struct AHRSdata
     int16_t quaternionW;
 };
 
+struct AHRSinfo
+{
+  uint8_t whoami;
+  uint8_t rev_major;
+  uint8_t rev_minor;
+  uint8_t status;
+};
+
 struct AHRSdataNormalized
 {
   float accX;
@@ -52,10 +60,11 @@ class AHRSplus : public Device
 {
   public:
     AHRSplus(char* name);
-    void Update();
+    virtual void OnRequest();
 
   private:
     AHRSdata _data;
+    AHRSinfo _info;
     AHRSdataNormalized _normalizedData;
     unsigned long _time;
     uint16_t readBytes(uint8_t* dest, uint8_t regAddress, int count);

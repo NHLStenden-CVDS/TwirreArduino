@@ -8,6 +8,11 @@ AHRSplus::AHRSplus(char* name) : Device(name, "This is the myAHRS+ sensor. It is
 {
   _time = micros();
   
+  _AddVariable("whoami", &_info.whoami);
+  _AddVariable("rev_major", &_info.rev_major);
+  _AddVariable("rev_minor", &_info.rev_minor);
+  _AddVariable("status", &_info.status);
+  
   _AddVariable("accX", &_normalizedData.accX);
   _AddVariable("accY", &_normalizedData.accY);
   _AddVariable("accZ", &_normalizedData.accZ);
@@ -25,17 +30,14 @@ AHRSplus::AHRSplus(char* name) : Device(name, "This is the myAHRS+ sensor. It is
   _AddVariable("quaternionY", &_normalizedData.quaternionY);
   _AddVariable("quaternionZ", &_normalizedData.quaternionZ);
   _AddVariable("quaternionW", &_normalizedData.quaternionW);
+  
+  readBytes(reinterpret_cast<uint8_t*>(&_info), 0x01, 4);
 }
 
-
-void AHRSplus::Update()
+void AHRSplus::OnRequest()
 {
-  if(micros() - _time >= LOOP_SKIP_MICROSECONDS)
-  {
-    readBytes(reinterpret_cast<uint8_t*>(&_data), 0x22, sizeof(AHRSdata));
-    _time = micros();
-    dataToNormalizedData();
-  }
+  int recv = readBytes(reinterpret_cast<uint8_t*>(&_data), 0x22, sizeof(AHRSdata));
+  if(recv == sizeof(AHRSdata)) dataToNormalizedData();
 }
 
 
@@ -57,46 +59,35 @@ void AHRSplus::dataToNormalizedData()
   _normalizedData.quaternionX = static_cast<float>(_data.quaternionX) / 32767.0f;
   _normalizedData.quaternionY = static_cast<float>(_data.quaternionY) / 32767.0f;
   _normalizedData.quaternionZ = static_cast<float>(_data.quaternionZ) / 32767.0f;
-  _normalizedData.quaternionW = static_cast<float>(_data.quaternionW) / 32767.0f;
+  _normalizedData.quaternionW = static_cast<float>(_data.quaternionW) / 32767.0f; 
 }
-
-
-bool waitByteReceived(unsigned long timeout)
-{
-  unsigned long started = micros();
-  while(!TWI_ByteReceived(WIRE1_INTERFACE) && (micros() - started < timeout));
-  
-  return (micros() - started < timeout);
-}
-
-
-bool waitTransferComplete(unsigned long timeout)
-{
-  unsigned long started = micros();
-  while(!TWI_TransferComplete(WIRE1_INTERFACE) && (micros() - started < timeout));
-  
-  return (micros() - started < timeout);
-}
-
 
 uint16_t AHRSplus::readBytes(uint8_t* dest, uint8_t regAddress, int count)
 {
-   TWI_StartRead(WIRE1_INTERFACE, ADDRESS, regAddress,1);
+  int serAvailable = SerialUSB.available();
+  
+  TWI_StartRead(WIRE_INTERFACE, ADDRESS, regAddress,1);
    
    //read all bytes except last one
-   for(int i = 0; i < (count - 1); i++)
+   uint_fast16_t stopAmnt = (count - 1);
+   for(uint_fast16_t i = 0; i < stopAmnt; ++i)
    {
-     if(!waitByteReceived(I2C_READ_TIMEOUT)) return i;
-     dest[i] = TWI_ReadByte(WIRE1_INTERFACE);
+     //wait for byte received
+     while((WIRE_INTERFACE->TWI_SR & TWI_SR_RXRDY) != TWI_SR_RXRDY);
+     //read byte
+     dest[i] = WIRE_INTERFACE->TWI_RHR;
    }
    
    //set stop condition before reading final byte
-   TWI_SendSTOPCondition(WIRE1_INTERFACE);
-   if(!waitByteReceived(I2C_READ_TIMEOUT)) return count - 1;
-   dest[count - 1] = TWI_ReadByte(WIRE1_INTERFACE);
+   TWI_SendSTOPCondition(WIRE_INTERFACE);
+   while((WIRE_INTERFACE->TWI_SR & TWI_SR_RXRDY) != TWI_SR_RXRDY);
+   dest[count - 1] = WIRE_INTERFACE->TWI_RHR;
    
    //wait for completion of transfer
-   waitTransferComplete(I2C_READ_TIMEOUT);
+   while(((WIRE_INTERFACE->TWI_SR & TWI_SR_TXCOMP) != TWI_SR_TXCOMP));
+   
+   //check for serial transfers (which can disrupt the i2c transaction)
+   if(SerialUSB.available() != serAvailable) return 0;
    
    return count;
 }

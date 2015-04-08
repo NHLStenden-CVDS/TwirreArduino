@@ -69,12 +69,17 @@ class Device
      * This is the main method of the device. It will set the variables (read from a sensor) or use them to actuate.
      * Every sensor or actuator has to implement this method. It will be called continuously in the main loop.
      */
-    virtual void Update() = 0;
+    virtual void Update() {};
     
     /**
      * TODO: doc
      */
     virtual void ValuesChanged() {};
+    
+    /**
+     * TODO: doc
+     */
+    virtual void OnRequest() {};
 
   protected:
     /**

@@ -10,7 +10,7 @@
 RequestHandler* requestHandler;
 
 // create all sensor objects
-//Sensor42 sensor42("sensor42");
+Sensor42 sensor42("sensor42");
 //Sensor42 secondSensor42("secondSensor42");
 
 SRFSonar * sRFSonar;
@@ -35,10 +35,12 @@ DeviceList actuatorList;
 
 void setup()
 {
-  pinMode(22, OUTPUT);
-  digitalWrite(22, HIGH);
-  
+  //use normal Wire as high-speed i2c (1MHz)
+  //because Wire has strong 1.5k pull-ups built-in
   Wire.begin();
+  Wire.setClock(1000000);
+  
+  //use Wire1 as normal i2c (100 KHz)
   Wire1.begin();
   Wire1.setClock(100000);
   
@@ -78,19 +80,6 @@ int ctr = 0;
 
 void loop()
 {
-  
-  if(ctr == 0)
-    digitalWrite(22, LOW);
-   
-   ctr++;
-   
-  if(ctr >= 2)
-  {
-    ctr = 0;
-    digitalWrite(22, HIGH);
-  }
-  
-  
   requestHandler->SendAndReceive();
   sensorList.UpdateAll();
   actuatorList.UpdateAll();
