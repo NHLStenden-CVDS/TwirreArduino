@@ -6,6 +6,7 @@
 #include "Naza.h"
 #include "SRFSonar.h"
 #include "AHRSplus.h"
+#include "GR12.h"
 
 RequestHandler* requestHandler;
 
@@ -14,6 +15,8 @@ Sensor42 sensor42("sensor42");
 //Sensor42 secondSensor42("secondSensor42");
 
 SRFSonar * sRFSonar;
+
+GR12 * gR12;
 
 Naza * naza;
 
@@ -50,14 +53,16 @@ void setup()
   delay(2500);
 
   naza = Naza::Initialize("naza");
-  sRFSonar = new SRFSonar("sonar1", 120, SRF08);
-  aHRS = new AHRSplus("myAHRS+");
+  //sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+  //aHRS = new AHRSplus("myAHRS+");
+  gR12 = new GR12("gR12");
 
   //add all sensors created above
   //sensorList.Add(&sensor42);
   //sensorList.Add(&secondSensor42);
-  sensorList.Add(sRFSonar);
-  sensorList.Add(aHRS);
+  //sensorList.Add(sRFSonar);
+  //sensorList.Add(aHRS);
+  sensorList.Add(gR12);
   //...
   
   //add all actuators created above

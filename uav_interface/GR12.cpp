@@ -1,29 +1,55 @@
-#define PWM_FREQUENCY 50
+#include "GR12.h"
 
-volatile uint64_t time0;  
-volatile uint64_t lastDutyCycle;
+#define YAW_PORT 5
+#define PITCH_PORT 3
+#define ROLL_PORT 2
+#define GAZ_PORT 4
+#define IS_AUTONOMOUS_PORT 10
 
-void setup() {
-  attachInterrupt(0, handleRisingPort0, RISING);
-  attachInterrupt(0, handleFallingPort0, FALLING);
-}
+HANDLE_CHANGE_PORT(Yaw)
+HANDLE_CHANGE_PORT(Pitch)
+HANDLE_CHANGE_PORT(Roll)
+HANDLE_CHANGE_PORT(Gaz)
+HANDLE_CHANGE_PORT(IsAutonomous)
 
-void loop() {
- 
-}
-
-void handleRisingPort0()
+GR12::GR12(char* name) : Device(name, "lol")//"This sensor can read the stick values and is automous switch from the GR12 receiver. Pitch, roll, gaz and yaw values are returned between -1 and 1. isAutonomous is returned in a byte, 1 for true, 0 for false")
 {
-  time0 = micros();
+  _AddVariable("isAutonomous", &_isAutonomous);
+  _AddVariable("pitch", &_pitch);
+  _AddVariable("roll", &_roll);
+  _AddVariable("gaz", &_gaz);
+  _AddVariable("yaw", &_yaw);
+  
+  attachInterrupt(YAW_PORT, handleChangePortYaw, CHANGE);
+  attachInterrupt(PITCH_PORT, handleChangePortPitch, CHANGE);
+  attachInterrupt(ROLL_PORT, handleChangePortRoll, CHANGE);
+  attachInterrupt(GAZ_PORT, handleChangePortGaz, CHANGE);
+  attachInterrupt(IS_AUTONOMOUS_PORT, handleChangePortIsAutonomous, CHANGE);
 }
 
-void handleFallingPort0()
+void GR12::Update()
 {
-  lastDutyCycle = micros() - time0;
+  
 }
 
-double dutyCycleToInputValue(uint64_t dutyCycle, uint16_t pwmFrequency, uint16_t minDutyCycle, uint16_t maxDutyCycle)
+void GR12::OnRequest()
 {
-  // TODO: between -1 and 1.
-  return  (dutyCycle - minDutyCycle) / (maxDutyCycle - minDutyCycle);
+  _yaw = dutyCycleToStickValue(lastPulseDurationYaw, 1098.6328125, 1899.4140625f);
+  _pitch = dutyCycleToStickValue(lastPulseDurationPitch, 1098.6328125, 1899.4140625f);
+  _roll = dutyCycleToStickValue(lastPulseDurationRoll, 1098.6328125, 1899.4140625f);
+  _gaz = dutyCycleToStickValue(lastPulseDurationGaz, 1098.6328125, 1899.4140625f);
+  
+  if(lastPulseDurationIsAutonomous > 1500)
+  {
+    _isAutonomous = 1;
+  }
+  else
+  {
+    _isAutonomous = 0;
+  }
+}
+
+double GR12::dutyCycleToStickValue(uint64_t pulseTime, double minPulseTime, double maxPulseTime)
+{
+  return (pulseTime - minPulseTime) * (1.0f - -1.0f) / (maxPulseTime - minPulseTime) + -1.0f; 
 }
