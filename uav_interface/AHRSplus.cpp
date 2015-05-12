@@ -2,12 +2,9 @@
 #include <Wire.h>
 #define ADDRESS 0x20
 #define I2C_READ_TIMEOUT 10000
-#define LOOP_SKIP_MICROSECONDS 10000
 
 AHRSplus::AHRSplus(char* name) : Device(name, "This is the myAHRS+ sensor. It is a fancy IMU or 'attitude heading reference system'")
 {
-  _time = micros();
-  
   _AddVariable("whoami", &_info.whoami);
   _AddVariable("rev_major", &_info.rev_major);
   _AddVariable("rev_minor", &_info.rev_minor);

@@ -66,7 +66,6 @@ class AHRSplus : public Device
     AHRSdata _data;
     AHRSinfo _info;
     AHRSdataNormalized _normalizedData;
-    unsigned long _time;
     uint16_t readBytes(uint8_t* dest, uint8_t regAddress, int count);
     void dataToNormalizedData();
 };
