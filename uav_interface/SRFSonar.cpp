@@ -61,9 +61,16 @@ void SRFSonar::Update()
   //check if sonar is idle
   if(complete != 0xFF)
   {
-   // delay(3);
-    //read most recent data from sonar
-    readUltrasonicSensorValue();
+    //experimental serial comm detection
+    int avail;
+    do
+    {
+      avail = SerialUSB.available();
+      //read most recent data from sonar
+      readUltrasonicSensorValue();
+    }
+    while(SerialUSB.available() != avail);
+    
     //start new ranging
     startUltrasonicRanging();
   }
