@@ -1,8 +1,9 @@
 #ifndef ACTUATOREXAMPLE_H_
 #define ACTUATOREXAMPLE_H_
 
-#include "Device.h"
 #include <Stream.h>
+
+#include "Device.h"
 
 class ActuatorExample : public Device
 {

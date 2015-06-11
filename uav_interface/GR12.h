@@ -2,6 +2,7 @@
 #define GR12_H_
 
 #include "Arduino.h"
+#include "Device.h"
 
 #define HANDLE_CHANGE_PORT(PORT_NR)                                        \
 volatile uint64_t lastPulseTime##PORT_NR;                                  \
@@ -19,8 +20,6 @@ void handleChangePort##PORT_NR ()                                          \
     lastPulseTime##PORT_NR = micros();                                     \
   }                                                                        \
 }  
-
-#include "Device.h"
 
 class GR12 : public Device
 {

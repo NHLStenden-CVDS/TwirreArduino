@@ -1,7 +1,8 @@
-#include "AHRSplus.h"
 #include <Wire.h>
+
+#include "AHRSplus.h"
+
 #define ADDRESS 0x20
-#define I2C_READ_TIMEOUT 10000
 
 AHRSplus::AHRSplus(char* name) : Device(name, "This is the myAHRS+ sensor. It is a fancy IMU or 'attitude heading reference system'")
 {

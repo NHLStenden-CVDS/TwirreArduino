@@ -1,6 +1,7 @@
-#include "Device.h"
 #include <cstring>
 #include <cstdlib>
+
+#include "Device.h"
 
 Device::Device(char* name, char* description)
 {

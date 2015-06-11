@@ -42,46 +42,44 @@ void setup()
   //because Wire has strong 1.5k pull-ups built-in
   Wire.begin();
   Wire.setClock(1000000);
-  
+
   //use Wire1 as normal i2c (100 KHz)
   Wire1.begin();
   Wire1.setClock(100000);
-  
+
   SerialUSB.begin(115200);
   SerialUSB.setTimeout(50);
   //delay to stabilize power and stuff
   delay(2500);
 
-  naza = Naza::Initialize("naza");
-  //sRFSonar = new SRFSonar("sonar1", 120, SRF08);
-  //aHRS = new AHRSplus("myAHRS+");
-  gR12 = new GR12("gR12");
+  //naza = Naza::Initialize("naza");
+  sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+  aHRS = new AHRSplus("myAHRS+");
+  //gR12 = new GR12("gR12");
 
   //add all sensors created above
   //sensorList.Add(&sensor42);
   //sensorList.Add(&secondSensor42);
-  //sensorList.Add(sRFSonar);
-  //sensorList.Add(aHRS);
-  sensorList.Add(gR12);
+  sensorList.Add(sRFSonar);
+  sensorList.Add(aHRS);
+  //sensorList.Add(gR12);
   //...
-  
+
   //add all actuators created above
   //actuatorList.Add(&actuatorExample);
-  actuatorList.Add(naza);
+  //actuatorList.Add(naza);
   //...
 
 
   //  clear the buffer
-  while(SerialUSB.available())
+  while (SerialUSB.available())
   {
     SerialUSB.read();
   }
-  
+
   //create request handler
   requestHandler = new RequestHandler(&sensorList, &actuatorList, &SerialUSB);
 }
-
-int ctr = 0;
 
 void loop()
 {
