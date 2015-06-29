@@ -2,7 +2,7 @@
 #include <cstring>
 #include <Wire.h>
 
-SRFSonar::SRFSonar(char* name, uint8_t I2CAddress, SRFType type, uint8_t gain, uint8_t range) : Device(name, "This is a ultrasonic sensor. It can be used to measure distances.")
+SRFSonar::SRFSonar(char* name, uint8_t I2CAddress, SRFType type, uint8_t gain, uint8_t range) : Device(name, "This is a ultrasonic sensor. It can be used to measure distances."), _gain(gain), _range(range), _retransmitCtr(1), _type(type)
 {
   _I2CAddress = I2CAddress;
   
@@ -29,19 +29,6 @@ SRFSonar::SRFSonar(char* name, uint8_t I2CAddress, SRFType type, uint8_t gain, u
   if(_hasLightSensor)
   {
     _AddVariable("lightSensor", &_lightSensorValue); 
-  }
-  
-  //SRF08: setup gain and range
-  if(type == SRF08)
-  {
-    Wire1.beginTransmission(_I2CAddress); // transmit to SRF08
-    Wire1.write(byte(0x01));      // sets register pointer to gain register
-    
-    //write gain and range settings to sonar
-    Wire1.write(byte(gain));
-    Wire1.write(byte(range));
-    
-    Wire1.endTransmission();      // stop transmitting
   }
   
   startUltrasonicRanging();
@@ -79,6 +66,26 @@ void SRFSonar::Update()
 // Function which gives the ultrasonic sensor the instruction to start a measurement 
 void SRFSonar::startUltrasonicRanging()
 {
+  //SRF08: setup gain and range
+  if(_type == SRF08)
+  {
+    _retransmitCtr--;
+    if(_retransmitCtr == 0)
+    {
+      Wire1.beginTransmission(_I2CAddress); // transmit to SRF08
+      Wire1.write(byte(0x01));      // sets register pointer to gain register
+      
+      //write gain and range settings to sonar
+      Wire1.write(byte(_gain));
+      Wire1.write(byte(_range));
+      
+      Wire1.endTransmission();      // stop transmitting
+      
+      //reset counter
+      _retransmitCtr = SRF08_SETTINGS_RETRANSMIT ;
+    }
+  }
+  
   // step 1: instruct sensor to read echoes
   Wire1.beginTransmission(_I2CAddress); //transmit to sonar address
   Wire1.write(byte(0x00));      // sets register pointer to the command register (0x00)  

@@ -5,6 +5,8 @@
 #define SRF08_START_ADDR 0x01
 #define SRF08_READ_BYTES 31
 #define SRF08_READ_VALUES 15
+//retransmit gain/range every X readings
+#define SRF08_SETTINGS_RETRANSMIT 40
 
 // settings for SRF02
 #define SRF02_START_ADDR 0x02
@@ -41,6 +43,12 @@ class SRFSonar : public Device
     uint8_t _nrOfBytesToRead;
     bool _hasLightSensor;
     uint8_t _lightSensorValue;
+    
+    uint8_t _gain;
+    uint8_t _range;
+    uint16_t _retransmitCtr;
+    
+    SRFType _type;
         
     void startUltrasonicRanging();
     void readUltrasonicSensorValue();
