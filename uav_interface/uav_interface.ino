@@ -7,26 +7,23 @@
 #include "SRFSonar.h"
 #include "AHRSplus.h"
 #include "GR12.h"
+#include "Vsense.h"
 
 RequestHandler* requestHandler;
 
 // create all sensor objects
-Sensor42 sensor42("sensor42");
-//Sensor42 secondSensor42("secondSensor42");
-
 SRFSonar * sRFSonar;
-
 GR12 * gR12;
-
 Naza * naza;
-
 AHRSplus * aHRS;
+
+VSense * vsensor;
+
 //... feel free to add more ...
 //... remember to add them to the list in setup()
 //...
 
 // create all actuator objects
-ActuatorExample actuatorExample("actuatorExample", &Serial);
 //... feel free to add more ...
 //... remember to add them to the list in setup()
 //...
@@ -52,26 +49,25 @@ void setup()
   //delay to stabilize power and stuff
   delay(2500);
 
-  //naza = Naza::Initialize("naza");
+  naza = Naza::Initialize("naza");
   sRFSonar = new SRFSonar("sonar1", 120, SRF08);
   aHRS = new AHRSplus("myAHRS+");
-  //gR12 = new GR12("gR12");
+  gR12 = new GR12("gR12");
+  vsensor = new VSense(A0, 0, 24.37578, "vbat");  //vmax calculated from TwirreShield voltage divider
 
   //add all sensors created above
-  //sensorList.Add(&sensor42);
-  //sensorList.Add(&secondSensor42);
   sensorList.Add(sRFSonar);
   sensorList.Add(aHRS);
-  //sensorList.Add(gR12);
-  //...
-
+  sensorList.Add(gR12);
+  sensorList.Add(vsensor);
+  
   //add all actuators created above
-  //actuatorList.Add(&actuatorExample);
-  //actuatorList.Add(naza);
-  //...
-
-
-  //  clear the buffer
+  actuatorList.Add(naza);
+  
+  //configure TwirreShield led
+  pinMode(48,OUTPUT);
+  
+  //clear the serial buffer
   while (SerialUSB.available())
   {
     SerialUSB.read();
@@ -81,9 +77,20 @@ void setup()
   requestHandler = new RequestHandler(&sensorList, &actuatorList, &SerialUSB);
 }
 
+int on = 1;
+int ctr = 0;
 void loop()
 {
   requestHandler->SendAndReceive();
   sensorList.UpdateAll();
   actuatorList.UpdateAll();
+  
+  //heartbeat on TwirreShield led
+  ctr++;
+  if(ctr == 1000)
+  {
+    ctr = 0;
+    digitalWrite(48, on);
+    on = 1 - on; 
+  }
 }
