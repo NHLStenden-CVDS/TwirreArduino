@@ -172,7 +172,7 @@ std::unique_ptr<char> Device::GetVariablesFormatString()
       }
       if (i > 0)
       {
-        //if it is not the first one, we should add a coma as a separation
+        //if it is not the first one, we should add a comma as a separation
         strcat(format, ",");
       }
       strcat(format, _variableList[i].name);
