@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <SPI.h>
 
 #include "RequestHandler.h"
 #include "Sensor42.h"
@@ -8,6 +9,7 @@
 #include "AHRSplus.h"
 #include "GR12.h"
 #include "Vsense.h"
+#include "FLIRLepton.h"
 
 RequestHandler* requestHandler;
 
@@ -16,6 +18,7 @@ SRFSonar * sRFSonar;
 GR12 * gR12;
 Naza * naza;
 AHRSplus * aHRS;
+FLIRLepton * flir;
 
 VSense * vsensor;
 
@@ -32,6 +35,7 @@ DeviceList sensorList;
 DeviceList actuatorList;
 
 
+//unsigned long lastLed = 0;
 
 void setup()
 {
@@ -46,23 +50,29 @@ void setup()
 
   SerialUSB.begin(115200);
   SerialUSB.setTimeout(50);
+
+  SPI.begin(4);
+  SPI.setClockDivider(4, 6);
+  
   //delay to stabilize power and stuff
   delay(2500);
 
-  naza = Naza::Initialize("naza");
-  sRFSonar = new SRFSonar("sonar1", 120, SRF08);
-  aHRS = new AHRSplus("myAHRS+");
-  gR12 = new GR12("gR12");
-  vsensor = new VSense(A0, 0, 24.37578, "vbat");  //vmax calculated from TwirreShield voltage divider
-
+  //naza = Naza::Initialize("naza");
+  //sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+  //aHRS = new AHRSplus("myAHRS+");
+  //gR12 = new GR12("gR12");
+  //vsensor = new VSense(A0, 0, 24.37578, "vbat");  //vmax calculated from TwirreShield voltage divider
+  flir = new FLIRLepton("flir",4,5);
+  
   //add all sensors created above
-  sensorList.Add(sRFSonar);
-  sensorList.Add(aHRS);
-  sensorList.Add(gR12);
-  sensorList.Add(vsensor);
+  //sensorList.Add(sRFSonar);
+  //sensorList.Add(aHRS);
+  //sensorList.Add(gR12);
+  //sensorList.Add(vsensor);
+  sensorList.Add(flir);
   
   //add all actuators created above
-  actuatorList.Add(naza);
+ // actuatorList.Add(naza);
   
   //configure TwirreShield led
   pinMode(48,OUTPUT);
@@ -87,7 +97,7 @@ void loop()
   
   //heartbeat on TwirreShield led
   ctr++;
-  if(ctr == 1000)
+  if(ctr == 50)
   {
     ctr = 0;
     digitalWrite(48, on);

@@ -1,9 +1,9 @@
 #include "GR12.h"
 
-#define YAW_PORT 5
+#define YAW_PORT 12
 #define PITCH_PORT 3
 #define ROLL_PORT 2
-#define GAZ_PORT 4
+#define GAZ_PORT 11
 #define IS_AUTONOMOUS_PORT 10
 
 HANDLE_CHANGE_PORT(Yaw)
