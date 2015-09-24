@@ -10,6 +10,7 @@
 #include "GR12.h"
 #include "Vsense.h"
 #include "FLIRLepton.h"
+#include "LidarLite.h"
 
 RequestHandler* requestHandler;
 
@@ -19,8 +20,9 @@ GR12 * gR12;
 Naza * naza;
 AHRSplus * aHRS;
 FLIRLepton * flir;
+LidarLite * lidar;
 
-VSense * vsensor;
+//VSense * vsensor;
 
 //... feel free to add more ...
 //... remember to add them to the list in setup()
@@ -50,6 +52,7 @@ void setup()
 
   SerialUSB.begin(115200);
   SerialUSB.setTimeout(50);
+  Serial.begin(115200);
 
   SPI.begin(4);
   SPI.setClockDivider(4, 6);
@@ -57,19 +60,21 @@ void setup()
   //delay to stabilize power and stuff
   delay(2500);
 
-  //naza = Naza::Initialize("naza");
-  //sRFSonar = new SRFSonar("sonar1", 120, SRF08);
-  //aHRS = new AHRSplus("myAHRS+");
-  //gR12 = new GR12("gR12");
-  //vsensor = new VSense(A0, 0, 24.37578, "vbat");  //vmax calculated from TwirreShield voltage divider
+  naza = Naza::Initialize("naza");
+  sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+  aHRS = new AHRSplus("myAHRS+");
+  gR12 = new GR12("gR12");
+  vsensor = new VSense(A0, 0, 24.37578, "vbat");  //vmax calculated from TwirreShield voltage divider
   flir = new FLIRLepton("flir",4,5);
+  lidar = new LidarLite("Lidar",0x62);
   
   //add all sensors created above
-  //sensorList.Add(sRFSonar);
-  //sensorList.Add(aHRS);
-  //sensorList.Add(gR12);
-  //sensorList.Add(vsensor);
+  sensorList.Add(sRFSonar);
+  sensorList.Add(aHRS);
+  sensorList.Add(gR12);
+  sensorList.Add(vsensor);
   sensorList.Add(flir);
+  sensorList.Add(lidar);
   
   //add all actuators created above
  // actuatorList.Add(naza);
