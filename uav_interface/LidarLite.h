@@ -10,6 +10,7 @@ class LidarLite : public Device
   public:
     LidarLite(char *name, uint8_t i2cAddr);
     void Update();
+    void OnRequest();
 
   private:
     void write(char addr, char val);

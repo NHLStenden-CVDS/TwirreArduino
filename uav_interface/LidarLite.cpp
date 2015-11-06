@@ -25,6 +25,11 @@ LidarLite::LidarLite(char* name, uint8_t i2cAddr) : Device(name, "This is a Lida
 
 void LidarLite::Update()
 {
+
+}
+
+void LidarLite::OnRequest()
+{
   uint8_t distance[2];
   read(0x8f,2,distance);
   _distance = (distance[0] << 8) + distance[1];
