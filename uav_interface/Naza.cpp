@@ -12,10 +12,10 @@
 //#define PWM_MIDDLE 3070
 #define PWM_MIDDLE 12280
 
-#define PITCH_CHANNEL 6
-#define ROLL_CHANNEL 7
-#define YAW_CHANNEL 8
-#define GAZ_CHANNEL 9
+#define PITCH_CHANNEL 7
+#define ROLL_CHANNEL 6
+#define YAW_CHANNEL 9
+#define GAZ_CHANNEL 8
 
 Naza* Naza::_instance = nullptr;
 
