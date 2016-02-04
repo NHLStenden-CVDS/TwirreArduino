@@ -7,7 +7,7 @@ class Sensor42 : public Device
 {
   public:
     Sensor42(char* name);
-    void Update();
+    void OnRequest();
 
   private:
     uint32_t _value;

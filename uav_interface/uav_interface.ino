@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <SPI.h>
-#include <SFE_MicroOLED.h>
+//#include <SFE_MicroOLED.h>
 #undef swap
 
 #include "RequestHandler.h"
@@ -14,8 +14,6 @@
 #include "FLIRLepton.h"
 #include "LidarLite.h"
 #include "StatusLED.h"
-//#include "OLED.h"
-//#include "OLEDLibrary/SFE_MicroOLED.h"
 
 #define HBLED 23
 
@@ -28,6 +26,8 @@ AHRSplus * aHRS;
 FLIRLepton * flir;
 LidarLite * lidar;
 VSense * vsensor;
+
+Sensor42 * testsensor;
 
 StatusLED * statusled;
 Naza * naza;
@@ -45,9 +45,7 @@ Naza * naza;
 DeviceList sensorList;
 DeviceList actuatorList;
 
-
-//unsigned long lastLed = 0;
-MicroOLED oled(45, 1);
+//MicroOLED oled(45, 1);
 void setup()
 {
   //use normal Wire as high-speed i2c (1MHz)
@@ -64,8 +62,8 @@ void setup()
   SerialUSB.setTimeout(50);
   Serial.begin(115200);
 
-  SPI.begin(4);
-  SPI.setClockDivider(4, 6);
+  //SPI.begin(4);
+  //SPI.setClockDivider(4, 6);
 
   //configure TwirreShield led
   pinMode(HBLED,OUTPUT);
@@ -82,7 +80,7 @@ void setup()
   digitalWrite(HBLED, LOW);
 
   naza = Naza::Initialize("naza");
-  sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+  //sRFSonar = new SRFSonar("sonar1", 120, SRF08);
   //aHRS = new AHRSplus("myAHRS+");
   gR12 = new GR12("gR12");
   vsensor = new VSense("vbat");  //vmax calculated from TwirreShield voltage divider
@@ -90,24 +88,27 @@ void setup()
   //lidar = new LidarLite("Lidar",0x62);
   statusled = new StatusLED("RGB_LED");
 
+  testsensor = new Sensor42("sensor42");
+
   
   //add all sensors created above
-  sensorList.Add(sRFSonar);
+  //sensorList.Add(sRFSonar);
   //sensorList.Add(aHRS);
   sensorList.Add(gR12);
   sensorList.Add(vsensor);
+  sensorList.Add(testsensor);
   //sensorList.Add(flir);
   //sensorList.Add(lidar);
   
   //add all actuators created above
   actuatorList.Add(naza);
   actuatorList.Add(statusled);
-  delay(500);
+  delay(100);
   digitalWrite(HBLED, HIGH);
  // OLED::Initialize("OLED");
  // actuatorList.Add(  );
+  delay(500);
   digitalWrite(HBLED, LOW);
-  delay(1000);
   
   //clear the serial buffer
   while (SerialUSB.available())
@@ -118,11 +119,7 @@ void setup()
   //create request handler
   requestHandler = new RequestHandler(&sensorList, &actuatorList, &SerialUSB);
 
-
-    //init oled
-  //oled = new MicroOLED(45, 1);
-
-  delay(1000);
+  delay(100);
 }
 
 

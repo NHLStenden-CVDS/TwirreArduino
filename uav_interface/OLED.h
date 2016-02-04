@@ -1,3 +1,4 @@
+/*
 #ifndef OLED_H_
 #define OLED_H_
 
@@ -31,4 +32,4 @@ class OLED : public Device
 
 
 #endif
-
+*/

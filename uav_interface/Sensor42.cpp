@@ -11,11 +11,11 @@ Sensor42::Sensor42(char* name) : Device(name, "This sensor is used for testing p
   _AddVariable("array", _array, &_numberOfElements);
 }
 
-void Sensor42::Update()
+void Sensor42::OnRequest()
 {
   _value = 42;
-  _numberOfElements = rand() % 5 + 1; //from 1 to 5 elements
-  _array = (uint8_t*)realloc(_array, sizeof(uint8_t)); //change array to new size
+  _numberOfElements = rand() % 200 + 1; //from 1 to 200 elements
+  _array = (uint8_t*)realloc(_array, sizeof(uint8_t) * _numberOfElements); //change array to new size
   for (uint16_t i = 0; i < _numberOfElements; ++i)
   {
     _array[i] = rand() % 26 + 65; //random capital letter
