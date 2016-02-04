@@ -7,7 +7,7 @@
 struct DeviceVariableSize
 {
   uint16_t elementSize = 0;
-  uint16_t numberOfElements = 0;
+  uint32_t numberOfElements = 0;
   bool isArray = false;
 };
 
@@ -88,16 +88,16 @@ class Device
      * arraySize then will be a pointer to a uint16_t that contains the number of elements of the array variable.
      * The variables will be added consecutively to a list. Later, they will be accessed with an index (ID).
      */
-    void _AddVariable(char* variableName, int8_t* variable, uint16_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, uint8_t* variable, uint16_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, int16_t* variable, uint16_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, uint16_t* variable, uint16_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, int32_t* variable, uint16_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, uint32_t* variable, uint16_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, int64_t* variable, uint16_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, uint64_t* variable, uint16_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, float* variable, uint16_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, double* variable, uint16_t* arraySize = nullptr);
+    void _AddVariable(char* variableName, int8_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(char* variableName, uint8_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(char* variableName, int16_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(char* variableName, uint16_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(char* variableName, int32_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(char* variableName, uint32_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(char* variableName, int64_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(char* variableName, uint64_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(char* variableName, float* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(char* variableName, double* variable, uint32_t* arraySize = nullptr);
 
     char* _name;
     char* _description;
@@ -120,7 +120,7 @@ class Device
     struct Variable
     {
       void* variable = nullptr;
-      uint16_t* arraySize = nullptr;
+      uint32_t* arraySize = nullptr;
       char* name;
       VariableType type;
 
@@ -133,7 +133,7 @@ class Device
      * arraySize then will be a pointer to a uint16_t that contains the number of elements of the array variable.
      * The variables will be added consecutively to a list. Later, they will be accessed with an index (ID).
      */
-    void _AddVariableToVariableList(char* variableName, void* variable, VariableType type, uint16_t* arraySize = nullptr);
+    void _AddVariableToVariableList(char* variableName, void* variable, VariableType type, uint32_t* arraySize = nullptr);
     
     /**
      * Gives the size of every type in VariableType in bytes.

@@ -184,7 +184,7 @@ Payload RequestHandler::_CreateSenseResponse(Device* sensor, Payload &request)
   uint8_t nrOfVariables = sensor->GetNumberOfVariables();
 
   //Get the size of the data
-  uint16_t totalSize = 0;
+  uint32_t totalSize = 0;
   for (uint8_t i = 0; i < request.size; i++)
   {
     uint8_t variableID = (uint8_t)request.data.get()[i];
@@ -198,7 +198,7 @@ Payload RequestHandler::_CreateSenseResponse(Device* sensor, Payload &request)
       if (variableSize.isArray)
       {
         //It is an array! we have to allocate the size as well!
-        totalSize += sizeof(variableSize.elementSize);
+        totalSize += sizeof(variableSize.numberOfElements);
       }
     }
     else
@@ -248,8 +248,8 @@ void RequestHandler::_AddToQueue(char opCode, Payload &payload)
   // If you add another payload before the previous one (all the messages) has been sent, it will overwrite the previous one.
 
 
-  //Calculate in how many messages the (opCode + data) has to be fitted. dataSize + 1 because of the opcode. MSG_MAX_SIZE + 1 because we want 64/64 to be 0. +1 to make it one message.
-  uint16_t nrOfMessages = (payload.size + 1) / (MSG_MAX_SIZE + 1) + 1;
+  //Calculate in how many messages the (opCode + data) has to be fitted. dataSize + 1 because of the opcode, but also - 1 because we want 64/64 to be 0. +1 to make it one message.
+  uint16_t nrOfMessages = (payload.size + 1 - 1) / (MSG_MAX_SIZE) + 1;
 
   //If the total ammount of messages don't fit in the queue, we put an error message in the queue
   if (nrOfMessages > MAX_NR_MESSAGES)
@@ -260,7 +260,7 @@ void RequestHandler::_AddToQueue(char opCode, Payload &payload)
   else
   {
     //dataSize + 1 because of the opcode, -1 because of the formula
-    uint16_t lastMessageSize = (payload.size + 1) - ( (payload.size + 1 - 1) / MSG_MAX_SIZE ) * MSG_MAX_SIZE;
+    uint16_t lastMessageSize = (payload.size + 1) - (nrOfMessages - 1) * MSG_MAX_SIZE;
 
     //_messageQueue will always be empty at this point
     _currentMessage = 0;

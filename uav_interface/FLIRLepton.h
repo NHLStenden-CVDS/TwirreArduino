@@ -38,7 +38,7 @@ class FLIRLepton : public Device
     uint32_t _errCount = 0;
     FLIRState _state = READING;
     
-    uint16_t _imgSize;    
+    uint32_t _imgSize;    
     uint8_t _width = IMG_WIDTH;
     uint8_t _height = IMG_HEIGHT;
     uint16_t _img[IMG_WIDTH*IMG_HEIGHT];

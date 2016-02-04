@@ -12,7 +12,7 @@ class Sensor42 : public Device
   private:
     uint32_t _value;
     uint8_t* _array;
-    uint16_t _numberOfElements;
+    uint32_t _numberOfElements;
 };
 
 #endif

@@ -10,7 +10,7 @@ FLIRLepton::FLIRLepton(char* name, int slavePin, int pwrPin) : Device(name, "Thi
   _pwrPin = pwrPin;
 
 
-  _imgSize = (uint16_t) ( _width * _height);
+  _imgSize = (uint32_t) ( _width * _height);
 
   _AddVariable("image", _img, &_imgSize);
   _AddVariable("height", &_height);

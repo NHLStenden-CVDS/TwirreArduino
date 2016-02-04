@@ -6,7 +6,7 @@
 #include "DeviceList.h"
 
 #define MAX_NR_MESSAGES 1025
-#define MSG_MAX_SIZE 64 //If this is changed to more than 255, in the protocol, change payloadSize to more than one byte (uint16_t?)
+#define MSG_MAX_SIZE 128 //If this is changed to more than 255, in the protocol, change payloadSize to more than one byte (uint16_t?)
 
 
 
