@@ -125,13 +125,13 @@ Payload RequestHandler::_DeviceListInfo(DeviceList* deviceList)
 {
   //get every sensor's name, description and outputformat and put it like name|desc|format. Separate these strings by ; and return it.
   char* infoString = (char*)malloc(1); //Initialize it with an empty string, we will use realloc to extend it later
-  *infoString = NULL; //We set it as an empty string so we will be able to use strcat
+  *infoString = 0; //We set it as an empty string so we will be able to use strcat
   uint16_t infoStringSize = 0;
   for (uint16_t i = 0; i < deviceList->GetLength(); ++i)
   {
     //calculate size to extend the string for this sensor
-    char* name = deviceList->Get(i)->GetName();
-    char* description = deviceList->Get(i)->GetDescription();
+    const char* name = deviceList->Get(i)->GetName();
+    const char* description = deviceList->Get(i)->GetDescription();
     std::unique_ptr<char> format = deviceList->Get(i)->GetVariablesFormatString();
     if (i > 0)
     {

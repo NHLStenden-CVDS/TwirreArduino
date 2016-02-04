@@ -2,7 +2,7 @@
 #include <cstring>
 #include <cstdlib>
 
-Sensor42::Sensor42(char* name) : Device(name, "This sensor is used for testing purposes. It returns the parameter 'value' which is fixed to 42.")
+Sensor42::Sensor42(const char* name) : Device(name, "This sensor is used for testing purposes. It returns the parameter 'value' which is fixed to 42.")
 {
   _AddVariable("value", &_value);
   _array = (uint8_t*)malloc(sizeof(uint8_t));

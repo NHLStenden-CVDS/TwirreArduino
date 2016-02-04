@@ -20,7 +20,7 @@ struct DeviceVariable
 class Device
 {
   public:
-    Device(char* name, char* description);
+    Device(const char* name, const char* description);
     virtual ~Device();
     
     /**
@@ -51,13 +51,13 @@ class Device
      * Gives the name of the device.
      * @return Returns a char pointer which refers to a null terminated string.
      */
-    char* GetName();
+    const char* GetName();
     
     /**
      * Gives the description of the device.
      * @return Returns a char pointer which refers to a null terminated string.
      */
-    char* GetDescription();
+    const char* GetDescription();
     
     /**
      * Gives the format string for the variables of the device. A unique pointer is returned in order to automatically delete the object after being used.
@@ -88,19 +88,19 @@ class Device
      * arraySize then will be a pointer to a uint16_t that contains the number of elements of the array variable.
      * The variables will be added consecutively to a list. Later, they will be accessed with an index (ID).
      */
-    void _AddVariable(char* variableName, int8_t* variable, uint32_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, uint8_t* variable, uint32_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, int16_t* variable, uint32_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, uint16_t* variable, uint32_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, int32_t* variable, uint32_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, uint32_t* variable, uint32_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, int64_t* variable, uint32_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, uint64_t* variable, uint32_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, float* variable, uint32_t* arraySize = nullptr);
-    void _AddVariable(char* variableName, double* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(const char* variableName, int8_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(const char* variableName, uint8_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(const char* variableName, int16_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(const char* variableName, uint16_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(const char* variableName, int32_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(const char* variableName, uint32_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(const char* variableName, int64_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(const char* variableName, uint64_t* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(const char* variableName, float* variable, uint32_t* arraySize = nullptr);
+    void _AddVariable(const char* variableName, double* variable, uint32_t* arraySize = nullptr);
 
-    char* _name;
-    char* _description;
+    const char* _name;
+    const char* _description;
 
   private:
     enum VariableType
@@ -121,7 +121,7 @@ class Device
     {
       void* variable = nullptr;
       uint32_t* arraySize = nullptr;
-      char* name;
+      const char* name;
       VariableType type;
 
       inline bool IsArray();
@@ -133,7 +133,7 @@ class Device
      * arraySize then will be a pointer to a uint16_t that contains the number of elements of the array variable.
      * The variables will be added consecutively to a list. Later, they will be accessed with an index (ID).
      */
-    void _AddVariableToVariableList(char* variableName, void* variable, VariableType type, uint32_t* arraySize = nullptr);
+    void _AddVariableToVariableList(const char* variableName, void* variable, VariableType type, uint32_t* arraySize = nullptr);
     
     /**
      * Gives the size of every type in VariableType in bytes.

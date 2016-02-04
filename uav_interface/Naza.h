@@ -8,12 +8,12 @@
 class Naza : public Device
 {
   public:
-    Naza(char* name);
+    Naza(const char* name);
     void Update();
     void ValuesChanged();
 
     static Naza* Instance();
-    static Naza* Initialize(char* name);
+    static Naza* Initialize(const char* name);
     uint32_t * getTimeout();
      void writeDefaultStickValues();  
      

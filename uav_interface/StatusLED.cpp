@@ -1,7 +1,7 @@
 #include "StatusLED.h"
 #include "Arduino.h"
 
-StatusLED::StatusLED(char* name) : Device(name, "With this actuator you can control the RGB Status LED")
+StatusLED::StatusLED(const char* name) : Device(name, "With this actuator you can control the RGB Status LED")
 {
   pinMode(LEDR, OUTPUT);
   pinMode(LEDG, OUTPUT);

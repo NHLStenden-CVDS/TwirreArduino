@@ -19,7 +19,7 @@
 
 Naza* Naza::_instance = nullptr;
 
-Naza::Naza(char* name) : Device(name, "With this actuator you can control Naza flight controllers")
+Naza::Naza(const char* name) : Device(name, "With this actuator you can control Naza flight controllers")
 {
   //setup PWM
   //12 bit, 500Hz
@@ -124,7 +124,7 @@ void Naza::startTimer(Tc *tc, uint32_t channel, IRQn_Type irq, uint32_t frequenc
   NVIC_EnableIRQ(irq);
 }
 
-Naza* Naza::Initialize(char* name)
+Naza* Naza::Initialize(const char* name)
 {
   if(_instance == nullptr)
   {

@@ -21,7 +21,7 @@
 class VSense: public Device
 {
   public:
-    VSense(char* name);
+    VSense(const char* name);
     virtual void OnRequest();
     
   private:

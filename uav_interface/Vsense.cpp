@@ -1,7 +1,7 @@
 #include "VSense.h"
 #include <arduino.h>
 
-VSense::VSense(char* name) : Device(name, "Voltage sensor")
+VSense::VSense(const char* name) : Device(name, "Voltage sensor")
 {
   //setup stuff
   _AddVariable("voltage", &_voltage);

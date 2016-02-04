@@ -12,7 +12,7 @@ HANDLE_CHANGE_PORT(Roll)
 HANDLE_CHANGE_PORT(Gaz)
 HANDLE_CHANGE_PORT(IsAutonomous)
 
-GR12::GR12(char* name) : Device(name, "lol")//"This sensor can read the stick values and is automous switch from the GR12 receiver. Pitch, roll, gaz and yaw values are returned between -1 and 1. isAutonomous is returned in a byte, 1 for true, 0 for false")
+GR12::GR12(const char* name) : Device(name, "lol")//"This sensor can read the stick values and is automous switch from the GR12 receiver. Pitch, roll, gaz and yaw values are returned between -1 and 1. isAutonomous is returned in a byte, 1 for true, 0 for false")
 {
   _AddVariable("isAutonomous", &_isAutonomous);
   _AddVariable("pitch", &_pitch);

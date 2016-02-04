@@ -31,7 +31,7 @@ class SRFSonar : public Device
     * require a lower gain value. Default = 0xFF (11 meters). As the SRF08 cannot reliably range beyond
     * 6 meters, this setting is recommended to be 0x8C (6 meters).
     */
-    SRFSonar(char *name, uint8_t I2CAddress, SRFType type, uint8_t gain = 0x00, uint8_t range = 0x8C);
+    SRFSonar(const char *name, uint8_t I2CAddress, SRFType type, uint8_t gain = 0x00, uint8_t range = 0x8C);
     void Update();
     void changeAddress(uint8_t address);
 

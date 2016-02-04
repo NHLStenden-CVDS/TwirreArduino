@@ -3,12 +3,12 @@
 
 #include "Device.h"
 
-Device::Device(char* name, char* description)
+Device::Device(const char* name, const char* description)
 {
-  _name = (char*)malloc(strlen(name) + 1); //+1 for the NULL terminator
-  strcpy(_name, name);
-  _description = (char*)malloc(strlen(description) + 1); //+1 for the NULL terminator
-  strcpy(_description, description);
+  _name = name;//(char*)malloc(strlen(name) + 1); //+1 for the NULL terminator
+  //strcpy(_name, name);
+  _description = description;//(char*)malloc(strlen(description) + 1); //+1 for the NULL terminator
+  //strcpy(_description, description);
 
   _variableListSize = 0;
   _variableList = nullptr;
@@ -16,8 +16,8 @@ Device::Device(char* name, char* description)
 
 Device::~Device()
 {
-  free(_name);
-  free(_description);
+  //free(_name);
+  //free(_description);
 }
 
 uint8_t Device::GetNumberOfVariables()
@@ -59,7 +59,7 @@ uint16_t Device::SetVariable(uint8_t variableID, void* variable)
     uint32_t totalSize = 0;
     uint16_t elementSize = _GetVariableTypeSize(_variableList[variableID].type);
     uint32_t nrOfElements = 1; //we assume now that it is not an array, an if statement might change this later
-    void* currentBufferPosition = variable;
+    unsigned char* currentBufferPosition = (unsigned char*)variable;
 
     //if it is an array we store the array size
     if (_variableList[variableID].IsArray())
@@ -108,12 +108,12 @@ DeviceVariableSize Device::GetVariableSize(uint8_t variableID)
   return variableSize;
 }
 
-char* Device::GetName()
+const char* Device::GetName()
 {
   return _name;
 }
 
-char* Device::GetDescription()
+const char* Device::GetDescription()
 {
   return _description;
 }
@@ -131,7 +131,7 @@ std::unique_ptr<char> Device::GetVariablesFormatString()
   {
     //create string for the outputformat. Its size depends on the number of values that the sensor has
     format = (char*)malloc(formatLength + 1); //+1 for the null terminator
-    format[0] = NULL; //We set it as an empty string so we will be able to use strcat
+    format[0] = 0; //We set it as an empty string so we will be able to use strcat
 
     //for every value we will have a type which will be of maximum 4 chars
     char* typeString = (char*)malloc(5); //space for 4 chars + NULL terminator
@@ -190,21 +190,22 @@ std::unique_ptr<char> Device::GetVariablesFormatString()
   {
     //Empty string
     format = (char*)malloc(1);
-    *format = NULL;
+    *format = 0;
   }
   return std::unique_ptr<char>(format);
 }
 
-void Device::_AddVariableToVariableList(char* variableName, void* variable, VariableType type, uint32_t* arraySize)
+void Device::_AddVariableToVariableList(const char* variableName, void* variable, VariableType type, uint32_t* arraySize)
 {
   //make the list longer allocating memory for the new SensorValue
   _variableListSize++;
   _variableList = (Variable*)realloc(_variableList, _variableListSize * sizeof(Variable));
 
+  _variableList[_variableListSize - 1].name = variableName;
   //reserve space for the length of the string + NULL terminator
-  _variableList[_variableListSize - 1].name = (char*)malloc(strlen(variableName) + 1);
+  //_variableList[_variableListSize - 1].name = (char*)malloc(strlen(variableName) + 1);
   //copy the name
-  strcpy(_variableList[_variableListSize - 1].name, variableName);
+  //strcpy(_variableList[_variableListSize - 1].name, variableName);
 
   //store the pointer to the value
   _variableList[_variableListSize - 1].variable = variable;
@@ -246,52 +247,52 @@ inline bool Device::Variable::IsArray()
  * Different AddValue functions for the different types
  */
 
-void Device::_AddVariable(char* variableName, int8_t* variable, uint32_t* arraySize)
+void Device::_AddVariable(const char* variableName, int8_t* variable, uint32_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::I8, arraySize);
 }
 
-void Device::_AddVariable(char* variableName, uint8_t* variable, uint32_t* arraySize)
+void Device::_AddVariable(const char* variableName, uint8_t* variable, uint32_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::UI8, arraySize);
 }
 
-void Device::_AddVariable(char* variableName, int16_t* variable, uint32_t* arraySize)
+void Device::_AddVariable(const char* variableName, int16_t* variable, uint32_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::I16, arraySize);
 }
 
-void Device::_AddVariable(char* variableName, uint16_t* variable, uint32_t* arraySize)
+void Device::_AddVariable(const char* variableName, uint16_t* variable, uint32_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::UI16, arraySize);
 }
 
-void Device::_AddVariable(char* variableName, int32_t* variable, uint32_t* arraySize)
+void Device::_AddVariable(const char* variableName, int32_t* variable, uint32_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::I32, arraySize);
 }
 
-void Device::_AddVariable(char* variableName, uint32_t* variable, uint32_t* arraySize)
+void Device::_AddVariable(const char* variableName, uint32_t* variable, uint32_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::UI32, arraySize);
 }
 
-void Device::_AddVariable(char* variableName, int64_t* variable, uint32_t* arraySize)
+void Device::_AddVariable(const char* variableName, int64_t* variable, uint32_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::I64, arraySize);
 }
 
-void Device::_AddVariable(char* variableName, uint64_t* variable, uint32_t* arraySize)
+void Device::_AddVariable(const char* variableName, uint64_t* variable, uint32_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::UI64, arraySize);
 }
 
-void Device::_AddVariable(char* variableName, float* variable, uint32_t* arraySize)
+void Device::_AddVariable(const char* variableName, float* variable, uint32_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::F, arraySize);
 }
 
-void Device::_AddVariable(char* variableName, double* variable, uint32_t* arraySize)
+void Device::_AddVariable(const char* variableName, double* variable, uint32_t* arraySize)
 {
   _AddVariableToVariableList(variableName, (void*) variable, VariableType::D, arraySize);
 }

@@ -6,7 +6,7 @@
 class Sensor42 : public Device
 {
   public:
-    Sensor42(char* name);
+    Sensor42(const char* name);
     void OnRequest();
 
   private:

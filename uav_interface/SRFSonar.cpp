@@ -2,7 +2,7 @@
 #include <cstring>
 #include <Wire.h>
 
-SRFSonar::SRFSonar(char* name, uint8_t I2CAddress, SRFType type, uint8_t gain, uint8_t range) : Device(name, "This is a ultrasonic sensor. It can be used to measure distances."), _gain(gain), _range(range), _retransmitCtr(1), _type(type)
+SRFSonar::SRFSonar(const char* name, uint8_t I2CAddress, SRFType type, uint8_t gain, uint8_t range) : Device(name, "This is a ultrasonic sensor. It can be used to measure distances."), _gain(gain), _range(range), _retransmitCtr(1), _type(type)
 {
   _I2CAddress = I2CAddress;
   

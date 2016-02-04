@@ -24,7 +24,7 @@ void handleChangePort##PORT_NR ()                                          \
 class GR12 : public Device
 {
   public:
-    GR12(char* name);
+    GR12(const char* name);
     void Update();
 
   private:

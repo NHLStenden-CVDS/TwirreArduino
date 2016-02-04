@@ -12,7 +12,7 @@
 class StatusLED : public Device
 {
   public:
-    StatusLED(char* name);
+    StatusLED(const char* name);
     void ValuesChanged();
   private:
     int8_t _red = 0, _green = 0, _blue = 0;
