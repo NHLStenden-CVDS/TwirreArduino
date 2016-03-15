@@ -21,10 +21,14 @@ void Hedgehog::init(){
   SPI.setDataMode(SPI_MODE0);
 }
 
-
 void Hedgehog::Update()
 {
-  loop_hedgehog();
+  unsigned long curTime = micros();
+
+  if(curTime>lastUpdate + 100000){  //Sensor updated aprox 8 times a second
+    lastUpdate = curTime;
+    loop_hedgehog();
+  }
 }
 
 // Marvelmind hedgehog service loop

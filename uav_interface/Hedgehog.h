@@ -7,7 +7,6 @@
 #define HEDGEHOG_BUF_SIZE 30 
 #define HEDGEHOG_PACKET_SIZE 23
 
-
 class Hedgehog : public Device
 {
   public:
@@ -24,7 +23,8 @@ class Hedgehog : public Device
     
     const int hedgehog_packet_header[5]= {0xff, 0x47, 0x01, 0x00, 0x10};
     typedef union {uint8_t b[2]; unsigned int w;} uni_8x2_16;
-  
+
+    unsigned long lastUpdate = 0;
 
     bool hedgehog_pos_updated;
 
