@@ -8,7 +8,7 @@
 class Hedgehog : public Device
 {
   public:
-    Hedgehog(char *name);
+    Hedgehog(const char *name);
     void Update();
     void OnRequest();
 

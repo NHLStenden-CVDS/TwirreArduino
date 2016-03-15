@@ -14,6 +14,7 @@
 #include "FLIRLepton.h"
 #include "LidarLite.h"
 #include "StatusLED.h"
+#include "Hedgehog.h"
 
 #define HBLED 23
 
@@ -26,6 +27,11 @@ AHRSplus * aHRS;
 FLIRLepton * flir;
 LidarLite * lidar;
 VSense * vsensor;
+
+
+Hedgehog * hedgehog;
+
+
 
 Sensor42 * testsensor;
 
@@ -87,6 +93,7 @@ void setup()
   //flir = new FLIRLepton("flir",4,5);
   //lidar = new LidarLite("Lidar",0x62);
   statusled = new StatusLED("RGB_LED");
+  hedgehog = new Hedgehog("Hedgehog");
 
   testsensor = new Sensor42("sensor42");
 
