@@ -80,23 +80,23 @@ void setup()
   digitalWrite(HBLED, LOW);
 
   naza = Naza::Initialize("naza");
-  //sRFSonar = new SRFSonar("sonar1", 120, SRF08);
-  //aHRS = new AHRSplus("myAHRS+");
-  gR12 = new GR12("gR12");
-  vsensor = new VSense("vbat");  //vmax calculated from TwirreShield voltage divider
+  sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+  aHRS = new AHRSplus("myAHRS+");
+  //gR12 = new GR12("gR12");
+//  vsensor = new VSense("vbat");  //vmax calculated from TwirreShield voltage divider
   //flir = new FLIRLepton("flir",4,5);
   //lidar = new LidarLite("Lidar",0x62);
   statusled = new StatusLED("RGB_LED");
 
-  testsensor = new Sensor42("sensor42");
+// testsensor = new Sensor42("sensor42");
 
   
   //add all sensors created above
-  //sensorList.Add(sRFSonar);
-  //sensorList.Add(aHRS);
-  sensorList.Add(gR12);
-  sensorList.Add(vsensor);
-  sensorList.Add(testsensor);
+  sensorList.Add(sRFSonar);
+  sensorList.Add(aHRS);
+//  sensorList.Add(gR12);
+ // sensorList.Add(vsensor);
+//  sensorList.Add(testsensor);
   //sensorList.Add(flir);
   //sensorList.Add(lidar);
   

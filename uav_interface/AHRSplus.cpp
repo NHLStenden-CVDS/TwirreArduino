@@ -6,29 +6,29 @@
 
 AHRSplus::AHRSplus(char* name) : Device(name, "This is the myAHRS+ sensor. It is a fancy IMU or 'attitude heading reference system'")
 {
-  _AddVariable("whoami", &_info.whoami);
-  _AddVariable("rev_major", &_info.rev_major);
-  _AddVariable("rev_minor", &_info.rev_minor);
-  _AddVariable("status", &_info.status);
-  
+//  _AddVariable("whoami", &_info.whoami);
+//  _AddVariable("rev_major", &_info.rev_major);
+//  _AddVariable("rev_minor", &_info.rev_minor);
+//  _AddVariable("status", &_info.status);
+//  
   _AddVariable("accX", &_normalizedData.accX);
   _AddVariable("accY", &_normalizedData.accY);
   _AddVariable("accZ", &_normalizedData.accZ);
-  _AddVariable("gyroX", &_normalizedData.gyroX);
-  _AddVariable("gyroY", &_normalizedData.gyroY);
-  _AddVariable("gyroZ", &_normalizedData.gyroZ);
-  _AddVariable("magX", &_normalizedData.magX);
-  _AddVariable("magY", &_normalizedData.magY);
-  _AddVariable("magZ", &_normalizedData.magZ);
-  _AddVariable("temp", &_normalizedData.temp);
+//  _AddVariable("gyroX", &_normalizedData.gyroX);
+//  _AddVariable("gyroY", &_normalizedData.gyroY);
+//  _AddVariable("gyroZ", &_normalizedData.gyroZ);
+//  _AddVariable("magX", &_normalizedData.magX);
+//  _AddVariable("magY", &_normalizedData.magY);
+//  _AddVariable("magZ", &_normalizedData.magZ);
+//  _AddVariable("temp", &_normalizedData.temp);
   _AddVariable("roll", &_normalizedData.roll);
   _AddVariable("pitch", &_normalizedData.pitch);
   _AddVariable("yaw", &_normalizedData.yaw);
-  _AddVariable("quaternionX", &_normalizedData.quaternionX);
-  _AddVariable("quaternionY", &_normalizedData.quaternionY);
-  _AddVariable("quaternionZ", &_normalizedData.quaternionZ);
-  _AddVariable("quaternionW", &_normalizedData.quaternionW);
-  
+//  _AddVariable("quaternionX", &_normalizedData.quaternionX);
+//  _AddVariable("quaternionY", &_normalizedData.quaternionY);
+//  _AddVariable("quaternionZ", &_normalizedData.quaternionZ);
+//  _AddVariable("quaternionW", &_normalizedData.quaternionW);
+//  
   readBytes(reinterpret_cast<uint8_t*>(&_info), 0x01, 4);
 }
 
