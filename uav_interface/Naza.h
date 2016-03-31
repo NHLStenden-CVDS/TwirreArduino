@@ -4,14 +4,16 @@
 #include "Device.h"
 #include "Arduino.h"
 #include <inttypes.h>
+#include "GR12.h"
 
 class Naza : public Device
 {
   public:
     Naza(const char* name);
+    Naza(const char* name, GR12 *gr12);
     void Update();
     void ValuesChanged();
-
+  
     static Naza* Instance();
     static Naza* Initialize(const char* name);
     uint32_t * getTimeout();
@@ -24,6 +26,14 @@ class Naza : public Device
     float _roll;
     float _gaz;
     uint32_t _timeout;
+
+    uint8_t _auto_pitch = 1;
+    uint8_t _auto_yaw = 1;
+    uint8_t _auto_gaz = 1;
+    uint8_t _auto_roll = 1;
+    
+    GR12 *_gr12 = nullptr;
+
       
     void startTimer(Tc *tc, uint32_t channel, IRQn_Type irq, uint32_t frequency);
 };

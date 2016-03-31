@@ -26,6 +26,10 @@ class GR12 : public Device
   public:
     GR12(const char* name);
     void Update();
+    double getPitch();
+    double getYaw();
+    double getGaz();
+    double getRoll();
 
   private:
     double _pitch;

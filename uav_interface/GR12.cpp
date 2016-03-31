@@ -29,7 +29,26 @@ GR12::GR12(const char* name) : Device(name, "lol")//"This sensor can read the st
 
 void GR12::Update()
 {
-  
+}
+
+double GR12::getPitch()
+{
+  return _pitch;
+}
+
+double GR12::getYaw()
+{
+  return _yaw;
+}
+
+double GR12::getGaz()
+{
+  return _gaz;
+}
+
+double GR12::getRoll()
+{
+  return _roll;
 }
 
 void GR12::OnRequest()

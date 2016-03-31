@@ -12,11 +12,13 @@ Hedgehog::Hedgehog(const char* name) : Device(name, "Hedgehog, ultrasonic positi
 
 void Hedgehog::init(){
   // start the SPI library
+  pinMode(53, OUTPUT);
+  digitalWrite(53, HIGH);
   SPI.begin();
   pinMode(HEDGEHOG_CS_PIN,OUTPUT);// set chip select for hedgehog  
   digitalWrite(HEDGEHOG_CS_PIN, HIGH);
   hedgehog_pos_updated = false;
-  SPI.setClockDivider(42);
+  SPI.setClockDivider(21);
   SPI.setBitOrder(MSBFIRST);
   SPI.setDataMode(SPI_MODE0);
 }
@@ -25,7 +27,7 @@ void Hedgehog::Update()
 {
   unsigned long curTime = micros();
 
-  if(curTime>lastUpdate + 100000){  //Sensor updated aprox 8 times a second
+  if(curTime>lastUpdate + 10000){  //Sensor updated aprox 100 times a second
     lastUpdate = curTime;
     loop_hedgehog();
   }

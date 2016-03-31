@@ -3,7 +3,7 @@
 
 #include "Device.h"
 
-#define HEDGEHOG_CS_PIN 4
+#define HEDGEHOG_CS_PIN 52
 #define HEDGEHOG_BUF_SIZE 30 
 #define HEDGEHOG_PACKET_SIZE 23
 
