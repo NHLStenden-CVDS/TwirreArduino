@@ -1,7 +1,6 @@
 #include "Naza.h"
 #include "Arduino.h"
 
-//#include "Adafruit_PWMServoDriver.h"
 //225, 900
 //#define PWM_MIN 2250
 #define PWM_MIN 9000
@@ -58,12 +57,32 @@ Naza::Naza(const char* name) : Device(name, "With this actuator you can control 
   writeDefaultStickValues();
 }
 
+Naza::Naza(const char* name, GR12 *gr12) : Naza(name)
+{
+  _gr12 = gr12;
+  _AddVariable("auto_pitch", &_auto_pitch);
+  _AddVariable("auto_roll", &_auto_roll);
+  _AddVariable("auto_yaw", &_auto_yaw);
+  _AddVariable("auto_gaz", &_auto_gaz);
+}
+
 void Naza::writeDefaultStickValues()
 {
-  PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[PITCH_CHANNEL].ulPWMChannel, PWM_MIDDLE);
-  PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[ROLL_CHANNEL].ulPWMChannel, PWM_MIDDLE);
-  PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[YAW_CHANNEL].ulPWMChannel, PWM_MIDDLE);
-  PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, PWM_MIDDLE);
+  if(_auto_pitch == 1) {
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[PITCH_CHANNEL].ulPWMChannel, PWM_MIDDLE);
+  }
+  
+  if(_auto_roll == 1) {
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[ROLL_CHANNEL].ulPWMChannel, PWM_MIDDLE);
+  }
+  
+  if(_auto_yaw == 1) {
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[YAW_CHANNEL].ulPWMChannel, PWM_MIDDLE);
+  }
+  
+  if(_auto_gaz == 1) {
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, PWM_MIDDLE); 
+  }
 }
 
 //timer handler TC1 ch 0
@@ -86,24 +105,55 @@ void Naza::ValuesChanged()
 {
   if(_timeout > 0)
   {
-    CLAMP(_pitch);
-    CLAMP(_roll);
-    CLAMP(_yaw);
-    CLAMP(_gaz);
-    uint16_t pulselengthPitch = map((_pitch * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
-    uint16_t pulselengthRoll = map((_roll * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
-    uint16_t pulselengthYaw = map((_yaw * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
-    uint16_t pulselengthGaz = map((_gaz * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
-  
-    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[PITCH_CHANNEL].ulPWMChannel, pulselengthPitch);
-    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[ROLL_CHANNEL].ulPWMChannel, pulselengthRoll);
-    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[YAW_CHANNEL].ulPWMChannel, pulselengthYaw);
-    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, pulselengthGaz);
+    if(_auto_pitch == 1) {
+      CLAMP(_pitch);
+      uint16_t pulselengthPitch = map((_pitch * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[PITCH_CHANNEL].ulPWMChannel, pulselengthPitch);
+    }
+
+    if(_auto_roll == 1) {
+      CLAMP(_roll);
+      uint16_t pulselengthRoll = map((_roll * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[ROLL_CHANNEL].ulPWMChannel, pulselengthRoll);
+    }
+
+    if(_auto_yaw == 1) {
+      CLAMP(_yaw);
+      uint16_t pulselengthYaw = map((_yaw * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[YAW_CHANNEL].ulPWMChannel, pulselengthYaw);
+    }
+
+    if(_auto_gaz == 1) {
+      CLAMP(_gaz);   
+      uint16_t pulselengthGaz = map((_gaz * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, pulselengthGaz);
+    }
   }
 }
 
 void Naza::Update()
 {
+  if(_gr12 != nullptr) {
+    if(_auto_pitch == 0) {
+      uint16_t pulselengthPitch = map((_gr12->getPitch() * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[PITCH_CHANNEL].ulPWMChannel, pulselengthPitch);
+    }
+
+    if(_auto_roll == 0) {
+      uint16_t pulselengthRoll = map((_gr12->getRoll() * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[ROLL_CHANNEL].ulPWMChannel, pulselengthRoll);
+    }
+
+    if(_auto_yaw == 0) {
+      uint16_t pulselengthYaw = map((_gr12->getYaw() * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[YAW_CHANNEL].ulPWMChannel, pulselengthYaw);
+    }
+
+    if(_auto_gaz == 0) {
+      uint16_t pulselengthGaz = map((_gr12->getGaz() * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, pulselengthGaz);
+    }
+  }
 }
 
 uint32_t * Naza::getTimeout()
