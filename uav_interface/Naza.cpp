@@ -101,35 +101,49 @@ void TC3_Handler()
 }
 
 #define CLAMP(X) (X) = ((X) < -1.0f) ? -1.0f : ((X) > 1.0f) ? 1.0f : (X);
+#define NAZA_DEADZONE 0.1
+#define NAZA_DEADZONE_INV ( 1 - NAZA_DEADZONE ) 
 void Naza::ValuesChanged()
 {
   if(_timeout > 0)
   {
     if(_auto_pitch == 1) {
-      _pitch += 0.093;
       CLAMP(_pitch);
-      uint16_t pulselengthPitch = map((_pitch * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      //fix deadzone
+      float pitch_a = _pitch * NAZA_DEADZONE_INV;
+      if(pitch_a < 0) pitch_a -= NAZA_DEADZONE;
+      if(pitch_a > 0) pitch_a += NAZA_DEADZONE;
+      uint16_t pulselengthPitch = map((pitch_a * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[PITCH_CHANNEL].ulPWMChannel, pulselengthPitch);
     }
 
     if(_auto_roll == 1) {
-      _roll += 0.093;
       CLAMP(_roll);
-      uint16_t pulselengthRoll = map((_roll * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      //fix deadzone
+      float roll_a = _roll * NAZA_DEADZONE_INV;
+      if(roll_a < 0) roll_a -= NAZA_DEADZONE;
+      if(roll_a > 0) roll_a += NAZA_DEADZONE;
+      uint16_t pulselengthRoll = map((roll_a * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[ROLL_CHANNEL].ulPWMChannel, pulselengthRoll);
     }
 
     if(_auto_yaw == 1) {
-      _yaw += 0.093;
       CLAMP(_yaw);
-      uint16_t pulselengthYaw = map((_yaw * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      //fix deadzone
+      float yaw_a = _yaw * NAZA_DEADZONE_INV;
+      if(yaw_a < 0) yaw_a -= NAZA_DEADZONE;
+      if(yaw_a > 0) yaw_a += NAZA_DEADZONE;
+      uint16_t pulselengthYaw = map((yaw_a * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[YAW_CHANNEL].ulPWMChannel, pulselengthYaw);
     }
 
     if(_auto_gaz == 1) {
-      _gaz += 0.093;
-      CLAMP(_gaz);   
-      uint16_t pulselengthGaz = map((_gaz * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
+      CLAMP(_gaz);
+      //fix deadzone
+      float gaz_a = _gaz * NAZA_DEADZONE_INV;
+      if(gaz_a < 0) gaz_a -= NAZA_DEADZONE;
+      if(gaz_a > 0) gaz_a += NAZA_DEADZONE;   
+      uint16_t pulselengthGaz = map((gaz_a * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, pulselengthGaz);
     }
   }
