@@ -39,7 +39,7 @@ class GR12 : public Device
     uint8_t _isAutonomous;
    
     double dutyCycleToStickValue(uint64_t pulseTime, double minPulseTime, double maxPulseTime); 
-    virtual void OnRequest();
+    //virtual void OnRequest();
 };
 
 #endif

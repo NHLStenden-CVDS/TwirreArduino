@@ -16,6 +16,7 @@ class Naza : public Device
   
     static Naza* Instance();
     static Naza* Initialize(const char* name);
+    static Naza* Initialize(const char* name, GR12 *gr12);
     uint32_t * getTimeout();
      void writeDefaultStickValues();  
      

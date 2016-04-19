@@ -56,13 +56,13 @@ void setup()
 {
   //use normal Wire as high-speed i2c (1MHz)
   //because Wire has strong 1.5k pull-ups built-in
-//  Wire.begin();
-//  Wire.setClock(1000000);
+  Wire.begin();
+  Wire.setClock(1000000);
 
   //use Wire1 as normal i2c (100 KHz)
   //oled.begin(); //stupid library
-//  Wire1.begin();
-//  Wire1.setClock(100000);
+  Wire1.begin();
+  Wire1.setClock(100000);
 
   SerialUSB.begin(115200);
   SerialUSB.setTimeout(50);
@@ -85,10 +85,11 @@ void setup()
   delay(2500);
   digitalWrite(HBLED, LOW);
 
-  naza = Naza::Initialize("naza");
+  
   sRFSonar = new SRFSonar("sonar1", 120, SRF08);
   aHRS = new AHRSplus("myAHRS+");
-  //gR12 = new GR12("gR12");
+  gR12 = new GR12("gR12");
+  naza = Naza::Initialize("naza", gR12);
 
 //  vsensor = new VSense("vbat");  //vmax calculated from TwirreShield voltage divider
   //flir = new FLIRLepton("flir",4,5);
@@ -102,7 +103,7 @@ void setup()
   //add all sensors created above
   sensorList.Add(sRFSonar);
   sensorList.Add(aHRS);
-//  sensorList.Add(gR12);
+  sensorList.Add(gR12);
  // sensorList.Add(vsensor);
 //  sensorList.Add(testsensor);
 
@@ -110,7 +111,7 @@ void setup()
   //sensorList.Add(lidar);
   sensorList.Add(hedgehog);
   //add all actuators created above
-  //actuatorList.Add(naza);
+  actuatorList.Add(naza);
   actuatorList.Add(statusled);
   delay(100);
   digitalWrite(HBLED, HIGH);

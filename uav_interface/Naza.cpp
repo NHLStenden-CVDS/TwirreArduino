@@ -11,10 +11,10 @@
 //#define PWM_MIDDLE 3070
 #define PWM_MIDDLE 12280
 
-#define PITCH_CHANNEL 7
-#define ROLL_CHANNEL 6
-#define YAW_CHANNEL 9
-#define GAZ_CHANNEL 8
+#define ROLL_CHANNEL 9
+#define PITCH_CHANNEL 8
+#define GAZ_CHANNEL 7
+#define YAW_CHANNEL 6
 
 Naza* Naza::_instance = nullptr;
 
@@ -106,24 +106,28 @@ void Naza::ValuesChanged()
   if(_timeout > 0)
   {
     if(_auto_pitch == 1) {
+      _pitch += 0.093;
       CLAMP(_pitch);
       uint16_t pulselengthPitch = map((_pitch * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[PITCH_CHANNEL].ulPWMChannel, pulselengthPitch);
     }
 
     if(_auto_roll == 1) {
+      _roll += 0.093;
       CLAMP(_roll);
       uint16_t pulselengthRoll = map((_roll * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[ROLL_CHANNEL].ulPWMChannel, pulselengthRoll);
     }
 
     if(_auto_yaw == 1) {
+      _yaw += 0.093;
       CLAMP(_yaw);
       uint16_t pulselengthYaw = map((_yaw * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[YAW_CHANNEL].ulPWMChannel, pulselengthYaw);
     }
 
     if(_auto_gaz == 1) {
+      _gaz += 0.093;
       CLAMP(_gaz);   
       uint16_t pulselengthGaz = map((_gaz * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, pulselengthGaz);
@@ -179,6 +183,15 @@ Naza* Naza::Initialize(const char* name)
   if(_instance == nullptr)
   {
     _instance = new Naza(name);
+  }
+  return _instance;    
+}
+
+Naza* Naza::Initialize(const char* name, GR12 *gr12)
+{
+  if(_instance == nullptr)
+  {
+    _instance = new Naza(name, gr12);
   }
   return _instance;    
 }
