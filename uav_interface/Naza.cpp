@@ -21,7 +21,7 @@ Naza* Naza::_instance = nullptr;
 Naza::Naza(const char* name) : Device(name, "With this actuator you can control Naza flight controllers")
 {
   //setup PWM
-  //12 bit, 500Hz
+  //14 bit, 500Hz
   pmc_enable_periph_clk( PWM_INTERFACE_ID );
   int clockFreq = 0x00003FFF * 500;
   PWMC_ConfigureClocks( clockFreq, clockFreq, VARIANT_MCK ); //both clock A and B set to 500Hz
@@ -32,7 +32,7 @@ Naza::Naza(const char* name) : Device(name, "With this actuator you can control 
     uint32_t chan = g_APinDescription[i].ulPWMChannel; 
     PIO_Configure( g_APinDescription[i].pPort, g_APinDescription[i].ulPinType, g_APinDescription[i].ulPin, g_APinDescription[i].ulPinConfiguration);
     PWMC_ConfigureChannel(PWM_INTERFACE, chan, PWM_CMR_CPRE_CLKA, 0, 0);
-    PWMC_SetPeriod(PWM_INTERFACE, chan, 0x00003FFF);  //set for 12-bit pwm
+    PWMC_SetPeriod(PWM_INTERFACE, chan, 0x00003FFF);  //set for 14-bit pwm
     PWMC_SetDutyCycle(PWM_INTERFACE, chan, 0); // The 0 is the initial duty cycle
     PWMC_EnableChannel(PWM_INTERFACE, chan); 
   }

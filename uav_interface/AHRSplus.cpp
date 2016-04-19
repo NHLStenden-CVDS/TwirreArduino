@@ -4,7 +4,7 @@
 
 #define ADDRESS 0x20
 
-AHRSplus::AHRSplus(char* name) : Device(name, "This is the myAHRS+ sensor. It is a fancy IMU or 'attitude heading reference system'")
+AHRSplus::AHRSplus(const char* name) : Device(name, "This is the myAHRS+ sensor. It is a fancy IMU or 'attitude heading reference system'")
 {
 //  _AddVariable("whoami", &_info.whoami);
 //  _AddVariable("rev_major", &_info.rev_major);

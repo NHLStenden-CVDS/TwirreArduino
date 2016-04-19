@@ -59,7 +59,7 @@ struct AHRSdataNormalized
 class AHRSplus : public Device
 {
   public:
-    AHRSplus(char* name);
+    AHRSplus(const char* name);
     virtual void OnRequest();
 
   private:

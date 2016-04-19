@@ -48,19 +48,19 @@ double GR12::getRoll()
 }
 
 #define CLAMP(X) (X) = ((X) < -1.0f) ? -1.0f : ((X) > 1.0f) ? 1.0f : (X);
+//was 1098.6328125
+#define GR12_PULSE_MIN 1100.0
+//was 1899.4140625
+#define GR12_PULSE_MAX 1900.0
 void GR12::Update()
 {
-  _yaw = dutyCycleToStickValue(lastPulseDurationYaw, 1098.6328125, 1899.4140625f);
-  
+  _yaw = dutyCycleToStickValue(lastPulseDurationYaw, GR12_PULSE_MIN, GR12_PULSE_MAX);
   CLAMP(_yaw)
-  _pitch = dutyCycleToStickValue(lastPulseDurationPitch, 1098.6328125, 1899.4140625f);
-  _pitch += 0.093;
+  _pitch = dutyCycleToStickValue(lastPulseDurationPitch, GR12_PULSE_MIN, GR12_PULSE_MAX);
   CLAMP(_pitch)
-  _roll = dutyCycleToStickValue(lastPulseDurationRoll, 1098.6328125, 1899.4140625f);
-  _roll += 0.093;
+  _roll = dutyCycleToStickValue(lastPulseDurationRoll, GR12_PULSE_MIN, GR12_PULSE_MAX);
   CLAMP(_roll)
-  _gaz = dutyCycleToStickValue(lastPulseDurationGaz, 1098.6328125, 1899.4140625f);
-  _gaz += 0.093;
+  _gaz = dutyCycleToStickValue(lastPulseDurationGaz, GR12_PULSE_MIN, GR12_PULSE_MAX);
   CLAMP(_gaz)
   
   if(lastPulseDurationIsAutonomous > 1500)
@@ -75,5 +75,5 @@ void GR12::Update()
 
 double GR12::dutyCycleToStickValue(uint64_t pulseTime, double minPulseTime, double maxPulseTime)
 {
-  return (pulseTime - minPulseTime) * (1.0f - -1.0f) / (maxPulseTime - minPulseTime) + -1.0f; 
+  return (pulseTime - minPulseTime) * (1.0 - -1.0) / (maxPulseTime - minPulseTime) + -1.0; 
 }
