@@ -54,10 +54,10 @@ void AHRSplus::dataToNormalizedData()
   _normalizedData.roll = (180.0f / 32767.0f) * static_cast<float>(_data.roll);
   _normalizedData.pitch = (180.0f / 32767.0f) * static_cast<float>(_data.pitch);
   _normalizedData.yaw = (180.0f / 32767.0f) * static_cast<float>(_data.yaw);
-  _normalizedData.quaternionX = static_cast<float>(_data.quaternionX) / 32767.0f;
-  _normalizedData.quaternionY = static_cast<float>(_data.quaternionY) / 32767.0f;
-  _normalizedData.quaternionZ = static_cast<float>(_data.quaternionZ) / 32767.0f;
-  _normalizedData.quaternionW = static_cast<float>(_data.quaternionW) / 32767.0f; 
+  //_normalizedData.quaternionX = static_cast<float>(_data.quaternionX) / 32767.0f;
+  //_normalizedData.quaternionY = static_cast<float>(_data.quaternionY) / 32767.0f;
+  //_normalizedData.quaternionZ = static_cast<float>(_data.quaternionZ) / 32767.0f;
+  //_normalizedData.quaternionW = static_cast<float>(_data.quaternionW) / 32767.0f; 
 }
 
 uint16_t AHRSplus::readBytes(uint8_t* dest, uint8_t regAddress, int count)

@@ -19,10 +19,10 @@ struct AHRSdata
     int16_t roll;
     int16_t pitch;
     int16_t yaw;
-    int16_t quaternionX;
-    int16_t quaternionY;
-    int16_t quaternionZ;
-    int16_t quaternionW;
+    //int16_t quaternionX;
+    //int16_t quaternionY;
+    //int16_t quaternionZ;
+    //int16_t quaternionW;
 };
 
 struct AHRSinfo
@@ -48,10 +48,10 @@ struct AHRSdataNormalized
   float roll;
   float pitch;
   float yaw;
-  float quaternionX;
-  float quaternionY;
-  float quaternionZ;
-  float quaternionW;
+  //float quaternionX;
+  //float quaternionY;
+  //float quaternionZ;
+  //float quaternionW;
 };
 
 #pragma pack(pop)
