@@ -143,7 +143,7 @@ void loop()
   
   //heartbeat on TwirreShield led
   ctr++;
-  if(ctr == 5000)
+  if(ctr == 1000)
   {
     ctr = 0;
     digitalWrite(HBLED, on);

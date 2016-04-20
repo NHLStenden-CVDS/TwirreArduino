@@ -1,15 +1,14 @@
 #include "Naza.h"
 #include "Arduino.h"
 
-//225, 900
-//#define PWM_MIN 2250
-#define PWM_MIN 9000
-//389, 1556
-//#define PWM_MAX 3890
-#define PWM_MAX 15560
-//307, 1228
-//#define PWM_MIDDLE 3070
-#define PWM_MIDDLE 12280
+//1100us @ 8.4MHz basefreq
+#define PWM_MIN 9240
+
+//1900us @ 8.4MHz basefreq
+#define PWM_MAX 15960
+
+//1500us @ 8.4MHz basefreq
+#define PWM_MIDDLE 12600
 
 #define ROLL_CHANNEL 9
 #define PITCH_CHANNEL 8
@@ -24,6 +23,8 @@ Naza::Naza(const char* name) : Device(name, "With this actuator you can control 
   //14 bit, 500Hz
   pmc_enable_periph_clk( PWM_INTERFACE_ID );
   int clockFreq = 0x00003FFF * 500;
+  //this will actually set the base frequency to (CPU_FREQ / round(CPU_FREQ / clockFreq))!
+  //meaning the actual PWM frequency will be 512.7Hz
   PWMC_ConfigureClocks( clockFreq, clockFreq, VARIANT_MCK ); //both clock A and B set to 500Hz
   
   //configure the pins for PWM
