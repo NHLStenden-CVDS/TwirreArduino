@@ -31,7 +31,6 @@
 #define ACT_STATUSLED true
 #define ACT_OLED false
 
-
 RequestHandler* requestHandler;
 
 // create all sensor objects
@@ -131,8 +130,12 @@ void setup()
 
 
   //Initialize actuator objects
-  #if ACT_NAZA  
-    naza = Naza::Initialize("naza", gR12);
+  #if ACT_NAZA 
+    #if ACT_GR12
+      naza = Naza::Initialize("naza", gR12);
+    #else
+      naza = Naza::Initialize("naza");
+    #endif
     actuatorList.Add(naza);
   #endif
 
@@ -176,7 +179,7 @@ void loop()
   
   //heartbeat on TwirreShield led
   ctr++;
-  if(ctr == 100000)
+  if(ctr == 1000)
   {
     ctr = 0;
     digitalWrite(HBLED, on);
