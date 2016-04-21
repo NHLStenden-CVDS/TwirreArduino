@@ -15,21 +15,22 @@
 #include "LidarLite.h"
 #include "StatusLED.h"
 #include "Hedgehog.h"
+#include "OLED.h"
 
 #define HBLED 23
 
-#define SENS_SONAR true
-#define SENS_MYAHRS true
-#define SENS_GR12 true
+#define SENS_SONAR false
+#define SENS_MYAHRS false
+#define SENS_GR12 false
 #define SENS_HEDGEHOG false
 #define SENS_VOLTAGE false
 #define SENS_FLIR false
 #define SENS_LIDAR false
 #define SENS_TEST false
 
-#define ACT_NAZA true
+#define ACT_NAZA false
 #define ACT_STATUSLED true
-#define ACT_OLED false
+#define ACT_OLED true
 
 RequestHandler* requestHandler;
 
@@ -51,6 +52,7 @@ Sensor42 * testsensor;
 // create all actuator objects
 StatusLED * statusled;
 Naza * naza;
+OLED * oled;
 //... feel free to add more ...
 //... remember to add them to the list in setup()
 //...
@@ -139,15 +141,17 @@ void setup()
     actuatorList.Add(naza);
   #endif
 
+  #if ACT_OLED
+    oled = new OLED("OLED");
+    actuatorList.Add(oled);
+  #endif
+  
+
   #if ACT_STATUSLED 
     statusled = new StatusLED("RGB_LED");
     actuatorList.Add(statusled);    
+    statusled->SetValue(0,255,0);
   #endif
-
-  #if ACT_OLED
-    
-  #endif
-  
 
 
 
