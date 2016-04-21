@@ -148,6 +148,10 @@ void Naza::ValuesChanged()
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, pulselengthGaz);
     }
   }
+  else
+  {
+    writeDefaultStickValues();
+  }
 }
 
 void Naza::Update()
