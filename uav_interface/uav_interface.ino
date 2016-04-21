@@ -18,6 +18,20 @@
 
 #define HBLED 23
 
+#define SENS_SONAR true
+#define SENS_MYAHRS true
+#define SENS_GR12 true
+#define SENS_HEDGEHOG false
+#define SENS_VOLTAGE false
+#define SENS_FLIR false
+#define SENS_LIDAR false
+#define SENS_TEST false
+
+#define ACT_NAZA true
+#define ACT_STATUSLED true
+#define ACT_OLED false
+
+
 RequestHandler* requestHandler;
 
 // create all sensor objects
@@ -27,23 +41,17 @@ AHRSplus * aHRS;
 FLIRLepton * flir;
 LidarLite * lidar;
 VSense * vsensor;
-
-
 Hedgehog * hedgehog;
-
-
-
 Sensor42 * testsensor;
-
-StatusLED * statusled;
-Naza * naza;
-
 
 //... feel free to add more ...
 //... remember to add them to the list in setup()
 //...
 
+
 // create all actuator objects
+StatusLED * statusled;
+Naza * naza;
 //... feel free to add more ...
 //... remember to add them to the list in setup()
 //...
@@ -73,50 +81,75 @@ void setup()
 
   //configure TwirreShield led
   pinMode(HBLED,OUTPUT);
-  digitalWrite(HBLED, HIGH);
-
-
-
-
-
-  
+  digitalWrite(HBLED, HIGH);  
   
   //delay to stabilize power and stuff
   delay(2500);
   digitalWrite(HBLED, LOW);
 
+
+  //Initialize sensor objects
+  #if SENS_SONAR
+    sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+    sensorList.Add(sRFSonar);
+  #endif
   
-  sRFSonar = new SRFSonar("sonar1", 120, SRF08);
-  aHRS = new AHRSplus("myAHRS+");
-  gR12 = new GR12("gR12");
-  naza = Naza::Initialize("naza", gR12);
+  #if SENS_MYAHRS
+    aHRS = new AHRSplus("myAHRS+");
+    sensorList.Add(aHRS);
+  #endif
 
-//  vsensor = new VSense("vbat");  //vmax calculated from TwirreShield voltage divider
-  //flir = new FLIRLepton("flir",4,5);
-  //lidar = new LidarLite("Lidar",0x62);
-  statusled = new StatusLED("RGB_LED");
-  hedgehog = new Hedgehog("Hedgehog");
+  #if SENS_GR12
+    gR12 = new GR12("gR12");
+    sensorList.Add(gR12);
+  #endif
 
-// testsensor = new Sensor42("sensor42");
+  #if SENS_HEDGEHOG
+    hedgehog = new Hedgehog("Hedgehog");
+    sensorList.Add(hedgehog);
+  #endif
 
+  #if SENS_VOLTAGE
+    vsensor = new VSense("vbat");  //vmax calculated from TwirreShield voltage divider
+    sensorList.Add(vsensor);
+  #endif
+
+  #if SENS_FLIR 
+    flir = new FLIRLepton("flir",4,5);
+    sensorList.Add(flir);
+  #endif
+
+  #if SENS_LIDAR
+    lidar = new LidarLite("Lidar",0x62);
+    sensorList.Add(lidar);
+  #endif
+
+  #if SENS_TEST
+    testsensor = new Sensor42("sensor42");
+    sensorList.Add(testsensor);
+  #endif
+
+
+  //Initialize actuator objects
+  #if ACT_NAZA  
+    naza = Naza::Initialize("naza", gR12);
+    actuatorList.Add(naza);
+  #endif
+
+  #if ACT_STATUSLED 
+    statusled = new StatusLED("RGB_LED");
+    actuatorList.Add(statusled);    
+  #endif
+
+  #if ACT_OLED
+    
+  #endif
   
-  //add all sensors created above
-  sensorList.Add(sRFSonar);
-  sensorList.Add(aHRS);
-  sensorList.Add(gR12);
- // sensorList.Add(vsensor);
-//  sensorList.Add(testsensor);
 
-  //sensorList.Add(flir);
-  //sensorList.Add(lidar);
-  sensorList.Add(hedgehog);
-  //add all actuators created above
-  actuatorList.Add(naza);
-  actuatorList.Add(statusled);
+
+
   delay(100);
   digitalWrite(HBLED, HIGH);
- // OLED::Initialize("OLED");
- // actuatorList.Add(  );
   delay(500);
   digitalWrite(HBLED, LOW);
   
@@ -143,7 +176,7 @@ void loop()
   
   //heartbeat on TwirreShield led
   ctr++;
-  if(ctr == 1000)
+  if(ctr == 100000)
   {
     ctr = 0;
     digitalWrite(HBLED, on);
