@@ -5,19 +5,21 @@
 
 #include "RequestHandler.h"
 #include "Sensor42.h"
-#include "ActuatorExample.h"
-#include "Naza.h"
-#include "SRFSonar.h"
-#include "AHRSplus.h"
-#include "GR12.h"
-#include "Vsense.h"
-#include "FLIRLepton.h"
-#include "LidarLite.h"
-#include "StatusLED.h"
-#include "Hedgehog.h"
-#include "OLED.h"
+//#include "ActuatorExample.h"
+//#include "Naza.h"
+//#include "SRFSonar.h"
+//#include "AHRSplus.h"
+//#include "GR12.h"
+//#include "Vsense.h"
+//#include "FLIRLepton.h"
+//#include "LidarLite.h"
+//#include "StatusLED.h"
+//#include "Hedgehog.h"
+//#include "OLED.h"
 
-#define HBLED 23
+#include "Adafruit_TCS34725.h"
+
+#define HBLED 13
 
 #define SENS_SONAR false
 #define SENS_MYAHRS false
@@ -29,13 +31,15 @@
 #define SENS_TEST false
 
 #define ACT_NAZA false
-#define ACT_STATUSLED true
-#define ACT_OLED true
+#define ACT_STATUSLED false
+#define ACT_OLED false
 
 RequestHandler* requestHandler;
 
 // create all sensor objects
+/*
 SRFSonar * sRFSonar;
+SRFSonar * sRFSonarFront;
 GR12 * gR12;
 AHRSplus * aHRS;
 FLIRLepton * flir;
@@ -44,15 +48,19 @@ VSense * vsensor;
 Hedgehog * hedgehog;
 Sensor42 * testsensor;
 
+*/
+
+Adafruit_TCS34725 * tcs;
+Sensor42 * testsensor;
 //... feel free to add more ...
 //... remember to add them to the list in setup()
 //...
 
 
 // create all actuator objects
-StatusLED * statusled;
-Naza * naza;
-OLED * oled;
+//StatusLED * statusled;
+//Naza * naza;
+//OLED * oled;
 //... feel free to add more ...
 //... remember to add them to the list in setup()
 //...
@@ -70,8 +78,8 @@ void setup()
 
   //use Wire1 as normal i2c (100 KHz)
   //oled.begin(); //stupid library
-  Wire1.begin();
-  Wire1.setClock(100000);
+ // Wire1.begin();
+ //Wire1.setClock(100000);
 
   SerialUSB.begin(115200);
   SerialUSB.setTimeout(50);
@@ -91,8 +99,13 @@ void setup()
 
   //Initialize sensor objects
   #if SENS_SONAR
-    sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+    sRFSonar = new SRFSonar("sonarDown", 120, SRF08);
     sensorList.Add(sRFSonar);
+  #endif
+  
+  #if SENS_SONAR
+    sRFSonarFront = new SRFSonar("sonarFront", 120, SRF08);
+    sensorList.Add(sRFSonarFront);
   #endif
   
   #if SENS_MYAHRS
@@ -111,7 +124,11 @@ void setup()
   #endif
 
   #if SENS_VOLTAGE
-    vsensor = new VSense("vbat");  //vmax calculated from TwirreShield voltage divider
+    #if ACT_OLED
+      vsensor = new VSense("vbat", &oled);  //vmax calculated from TwirreShield voltage divider
+    #else
+      vsensor = new VSense("vbat");  //vmax calculated from TwirreShield voltage divider
+    #endif
     sensorList.Add(vsensor);
   #endif
 
@@ -130,7 +147,13 @@ void setup()
     sensorList.Add(testsensor);
   #endif
 
+  tcs = new Adafruit_TCS34725("RGBSens", TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
+  
 
+  testsensor = new Sensor42("sensor42");
+  sensorList.Add(testsensor);
+  sensorList.Add(tcs);
+  actuatorList.Add(tcs);
   //Initialize actuator objects
   #if ACT_NAZA 
     #if ACT_GR12
@@ -176,14 +199,14 @@ void setup()
 int on = 1;
 int ctr = 0;
 void loop()
-{
+{  
   requestHandler->SendAndReceive();
   sensorList.UpdateAll();
   actuatorList.UpdateAll();
   
   //heartbeat on TwirreShield led
   ctr++;
-  if(ctr == 1000)
+  if(ctr == 100000)
   {
     ctr = 0;
     digitalWrite(HBLED, on);
