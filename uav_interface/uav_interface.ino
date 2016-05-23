@@ -19,16 +19,16 @@
 
 #define HBLED 23
 
-#define SENS_SONAR false
-#define SENS_MYAHRS false
-#define SENS_GR12 false
+#define SENS_SONAR true
+#define SENS_MYAHRS true
+#define SENS_GR12 true
 #define SENS_HEDGEHOG false
-#define SENS_VOLTAGE false
+#define SENS_VOLTAGE true
 #define SENS_FLIR false
 #define SENS_LIDAR false
 #define SENS_TEST false
 
-#define ACT_NAZA false
+#define ACT_NAZA true
 #define ACT_STATUSLED true
 #define ACT_OLED true
 
@@ -133,7 +133,7 @@ void setup()
 
   //Initialize actuator objects
   #if ACT_NAZA 
-    #if ACT_GR12
+    #if SENS_GR12
       naza = Naza::Initialize("naza", gR12);
     #else
       naza = Naza::Initialize("naza");
