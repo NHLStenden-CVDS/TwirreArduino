@@ -23,3 +23,12 @@ void StatusLED::ValuesChanged()
   digitalWrite(LEDB, _blue);  
 }
 
+void StatusLED::SetValue(int8_t red,int8_t green, int8_t blue)
+{
+  _red = red;
+  _green = green;
+  _blue = blue;
+
+  ValuesChanged();
+}
+

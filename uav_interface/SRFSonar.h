@@ -13,6 +13,9 @@
 #define SRF02_READ_BYTES 4
 #define SRF02_READ_VALUES 2
 
+// filtering settings
+#define FILTER_WINDOW_SIZE 3
+
 #include "Device.h"
 
 enum SRFType
@@ -37,12 +40,19 @@ class SRFSonar : public Device
 
   private:
     uint16_t *_lastReadingRaw;
+    uint16_t _firstDistance;
     uint32_t _lastReadingRawLength;
     uint8_t _I2CAddress;
     uint8_t _startAddress;
     uint8_t _nrOfBytesToRead;
     bool _hasLightSensor;
     uint8_t _lightSensorValue;
+    
+
+    // window size of the median filter
+
+    uint8_t _lastReadingPointer = 0;
+    uint16_t *_lastReadingsBuffer;
     
     uint8_t _gain;
     uint8_t _range;

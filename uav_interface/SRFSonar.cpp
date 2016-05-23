@@ -1,6 +1,7 @@
 #include "SRFSonar.h"
 #include <cstring>
 #include <Wire.h>
+#include <cstdlib>
 
 SRFSonar::SRFSonar(const char* name, uint8_t I2CAddress, SRFType type, uint8_t gain, uint8_t range) : Device(name, "This is a ultrasonic sensor. It can be used to measure distances."), _gain(gain), _range(range), _retransmitCtr(1), _type(type)
 {
@@ -22,10 +23,13 @@ SRFSonar::SRFSonar(const char* name, uint8_t I2CAddress, SRFType type, uint8_t g
       _hasLightSensor = false;
       break;
   }
-  _lastReadingRaw = (uint16_t *)malloc(sizeof(uint16_t) * _lastReadingRawLength);
   
-  _AddVariable("firstDistance", _lastReadingRaw);
+  _lastReadingRaw = (uint16_t *)malloc(sizeof(uint16_t) * _lastReadingRawLength);
+  _lastReadingsBuffer = (uint16_t *)malloc(sizeof(uint16_t) * FILTER_WINDOW_SIZE);
+  
+  _AddVariable("firstDistance", &_firstDistance);
   _AddVariable("distanceValues", _lastReadingRaw, &_lastReadingRawLength);
+  
   if(_hasLightSensor)
   {
     _AddVariable("lightSensor", &_lightSensorValue); 
@@ -120,6 +124,11 @@ void SRFSonar::changeAddress(uint8_t address)
   _I2CAddress = address;
 }
 
+static int compare_ui16 (const void * a, const void * b)
+{
+  return ( *(uint16_t*)a - *(uint16_t*)b );
+}
+
 // Function which reads the value from the ultrasonic sensor.
  void SRFSonar::readUltrasonicSensorValue()
  {
@@ -146,5 +155,13 @@ void SRFSonar::changeAddress(uint8_t address)
       _lastReadingRaw[i] = _lastReadingRaw[i] << 8;
       _lastReadingRaw[i] |= Wire1.read();
     }
+
+    // median filtering
+    uint16_t sortedValues[FILTER_WINDOW_SIZE];
+    _lastReadingsBuffer[_lastReadingPointer] = _lastReadingRaw[0];
+    _lastReadingPointer = (_lastReadingPointer + 1) % FILTER_WINDOW_SIZE;
+    memcpy(sortedValues, _lastReadingsBuffer, sizeof(uint16_t) * FILTER_WINDOW_SIZE);
+    qsort(sortedValues, FILTER_WINDOW_SIZE, sizeof(uint16_t), compare_ui16 );
+    _firstDistance = sortedValues[FILTER_WINDOW_SIZE / 2];
   }
 }
