@@ -20,7 +20,7 @@ AHRSplus::AHRSplus(const char* name) : Device(name, "This is the myAHRS+ sensor.
 //  _AddVariable("magX", &_normalizedData.magX);
 //  _AddVariable("magY", &_normalizedData.magY);
 //  _AddVariable("magZ", &_normalizedData.magZ);
-//  _AddVariable("temp", &_normalizedData.temp);
+  _AddVariable("temp", &_normalizedData.temp);
   _AddVariable("roll", &_normalizedData.roll);
   _AddVariable("pitch", &_normalizedData.pitch);
   _AddVariable("yaw", &_normalizedData.yaw);
