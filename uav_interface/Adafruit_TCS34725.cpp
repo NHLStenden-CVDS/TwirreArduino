@@ -144,7 +144,7 @@ void Adafruit_TCS34725::disable(void)
     Constructor
 */
 /**************************************************************************/
-Adafruit_TCS34725::Adafruit_TCS34725(char* name, tcs34725IntegrationTime_t it, tcs34725Gain_t gain) : Device(name, "This is a RCS34725 RGB Sensor") 
+Adafruit_TCS34725::Adafruit_TCS34725(const char* name, tcs34725IntegrationTime_t it, tcs34725Gain_t gain) : Device(name, "This is a RCS34725 RGB Sensor") 
 {
   _tcs34725Initialised = false;
   _tcs34725IntegrationTime = it;

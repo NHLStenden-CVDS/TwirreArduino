@@ -236,6 +236,7 @@ uint16_t Device::_GetVariableTypeSize(VariableType type)
     case VariableType::D:
       return 8;
   }
+  return 0;
 }
 
 inline bool Device::Variable::IsArray()

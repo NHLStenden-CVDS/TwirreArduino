@@ -181,7 +181,7 @@ Payload RequestHandler::_CreateSenseResponse(Device* sensor, Payload &request)
 { 
   sensor->OnRequest();
   
-  uint8_t nrOfVariables = sensor->GetNumberOfVariables();
+  //uint8_t nrOfVariables = sensor->GetNumberOfVariables();
 
   //Get the size of the data
   uint32_t totalSize = 0;

@@ -120,7 +120,7 @@ tcs34725Gain_t;
 
 class Adafruit_TCS34725 : public Device {
  public:
-  Adafruit_TCS34725(char* name, tcs34725IntegrationTime_t = TCS34725_INTEGRATIONTIME_2_4MS, tcs34725Gain_t = TCS34725_GAIN_1X);
+  Adafruit_TCS34725(const char* name, tcs34725IntegrationTime_t = TCS34725_INTEGRATIONTIME_2_4MS, tcs34725Gain_t = TCS34725_GAIN_1X);
   
   void OnRequest();
   void ValuesChanged();
