@@ -32,6 +32,11 @@ class Naza : public Device
     uint8_t _auto_yaw = 1;
     uint8_t _auto_gaz = 1;
     uint8_t _auto_roll = 1;
+
+    float _pitch_deadzone = 0;
+    float _yaw_deadzone = 0;
+    float _roll_deadzone = 0;
+    float _gaz_deadzone = 0;
     
     GR12 *_gr12 = nullptr;
 

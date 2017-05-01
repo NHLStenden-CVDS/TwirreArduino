@@ -20,7 +20,7 @@
 #define HBLED 23
 
 #define SENS_SONAR true
-#define SENS_MYAHRS true
+#define SENS_MYAHRS false
 #define SENS_GR12 true
 #define SENS_HEDGEHOG false
 #define SENS_VOLTAGE true
@@ -30,7 +30,7 @@
 
 #define ACT_NAZA true
 #define ACT_STATUSLED true
-#define ACT_OLED true
+#define ACT_OLED false
 
 RequestHandler* requestHandler;
 

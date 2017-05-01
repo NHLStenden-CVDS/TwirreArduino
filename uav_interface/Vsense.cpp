@@ -1,5 +1,5 @@
-#include "VSense.h"
-#include <arduino.h>
+#include "Vsense.h"
+#include <Arduino.h>
 
 VSense::VSense(const char* name) : Device(name, "Voltage sensor")
 {

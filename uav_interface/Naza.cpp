@@ -15,6 +15,9 @@
 #define GAZ_CHANNEL 7
 #define YAW_CHANNEL 6
 
+#define CLAMP(X) (X) = ((X) < -1.0f) ? -1.0f : ((X) > 1.0f) ? 1.0f : (X);
+#define NAZA_DEADZONE 0.1
+
 Naza* Naza::_instance = nullptr;
 
 Naza::Naza(const char* name) : Device(name, "With this actuator you can control Naza flight controllers")
@@ -48,6 +51,10 @@ Naza::Naza(const char* name) : Device(name, "With this actuator you can control 
   _AddVariable("roll", &_roll);
   _AddVariable("yaw", &_yaw);
   _AddVariable("gaz", &_gaz);
+  _AddVariable("pitchDeadzone", &_pitch_deadzone);
+  _AddVariable("rollDeadzone", &_roll_deadzone);
+  _AddVariable("yawDeadzone", &_yaw_deadzone);
+  _AddVariable("gazDeadzone", &_gaz_deadzone);
   _AddVariable("timeout", &_timeout);
   
   _pitch = 0.0f;
@@ -101,49 +108,62 @@ void TC3_Handler()
   }
 }
 
-#define CLAMP(X) (X) = ((X) < -1.0f) ? -1.0f : ((X) > 1.0f) ? 1.0f : (X);
-#define NAZA_DEADZONE 0.1
-#define NAZA_DEADZONE_INV ( 1 - NAZA_DEADZONE ) 
 void Naza::ValuesChanged()
 {
+  //limit deadzone
+  if(_pitch_deadzone > (2 * NAZA_DEADZONE) ) _pitch_deadzone = (2 * NAZA_DEADZONE);
+  if(_roll_deadzone > (2 * NAZA_DEADZONE) ) _roll_deadzone = (2 * NAZA_DEADZONE);
+  if(_yaw_deadzone > (2 * NAZA_DEADZONE) ) _yaw_deadzone = (2 * NAZA_DEADZONE);
+  if(_gaz_deadzone > (2 * NAZA_DEADZONE) ) _gaz_deadzone = (2 * NAZA_DEADZONE);
+  
   if(_timeout > 0)
   {
     if(_auto_pitch == 1) {
       CLAMP(_pitch);
-      //fix deadzone
-      float pitch_a = _pitch * NAZA_DEADZONE_INV;
-      if(pitch_a < 0) pitch_a -= NAZA_DEADZONE;
-      if(pitch_a > 0) pitch_a += NAZA_DEADZONE;
+      
+      //fix naza deadzone
+      float deadzone = NAZA_DEADZONE - _pitch_deadzone;
+      float deadzone_inv = 1 - deadzone;
+      float pitch_a = _pitch * deadzone_inv;
+      if(pitch_a < 0) pitch_a -= deadzone;
+      if(pitch_a > 0) pitch_a += deadzone;
+      
       uint16_t pulselengthPitch = map((pitch_a * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[PITCH_CHANNEL].ulPWMChannel, pulselengthPitch);
     }
 
     if(_auto_roll == 1) {
       CLAMP(_roll);
-      //fix deadzone
-      float roll_a = _roll * NAZA_DEADZONE_INV;
-      if(roll_a < 0) roll_a -= NAZA_DEADZONE;
-      if(roll_a > 0) roll_a += NAZA_DEADZONE;
+      //fix naza deadzone
+      float deadzone = NAZA_DEADZONE - _roll_deadzone;
+      float deadzone_inv = 1 - deadzone;
+      float roll_a = _roll * deadzone_inv;
+      if(roll_a < 0) roll_a -= deadzone;
+      if(roll_a > 0) roll_a += deadzone;
       uint16_t pulselengthRoll = map((roll_a * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[ROLL_CHANNEL].ulPWMChannel, pulselengthRoll);
     }
 
     if(_auto_yaw == 1) {
       CLAMP(_yaw);
-      //fix deadzone
-      float yaw_a = _yaw * NAZA_DEADZONE_INV;
-      if(yaw_a < 0) yaw_a -= NAZA_DEADZONE;
-      if(yaw_a > 0) yaw_a += NAZA_DEADZONE;
+      //fix naza deadzone
+      float deadzone = NAZA_DEADZONE - _yaw_deadzone;
+      float deadzone_inv = 1 - deadzone;
+      float yaw_a = _yaw * deadzone_inv;
+      if(yaw_a < 0) yaw_a -= deadzone;
+      if(yaw_a > 0) yaw_a += deadzone;
       uint16_t pulselengthYaw = map((yaw_a * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[YAW_CHANNEL].ulPWMChannel, pulselengthYaw);
     }
 
     if(_auto_gaz == 1) {
       CLAMP(_gaz);
-      //fix deadzone
-      float gaz_a = _gaz * NAZA_DEADZONE_INV;
-      if(gaz_a < 0) gaz_a -= NAZA_DEADZONE;
-      if(gaz_a > 0) gaz_a += NAZA_DEADZONE;   
+      //fix naza deadzone
+      float deadzone = NAZA_DEADZONE - _gaz_deadzone;
+      float deadzone_inv = 1 - deadzone;
+      float gaz_a = _gaz * deadzone_inv;
+      if(gaz_a < 0) gaz_a -= deadzone;
+      if(gaz_a > 0) gaz_a += deadzone;   
       uint16_t pulselengthGaz = map((gaz_a * 10000.0f), -10000, 10000, PWM_MIN, PWM_MAX);
       PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[GAZ_CHANNEL].ulPWMChannel, pulselengthGaz);
     }

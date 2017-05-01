@@ -1,5 +1,4 @@
 #include "Hedgehog.h"
-#include <arduino.h>
 #include <SPI.h>
 
 Hedgehog::Hedgehog(const char* name) : Device(name, "Hedgehog, ultrasonic position tracking system")
