@@ -1,9 +1,21 @@
+ /* 
+  * Copyright © 2017, Centre of Expertise Computer Vision & Data Science, NHL Stenden university of applied sciences
+  * All rights reserved.
+  * 
+  * no warranty, no liability
+  */
+
 #include <cstring>
 #include <cstdlib>
 
 #include "Device.h"
 
-Device::Device(const char* name, const char* description)
+/*
+ * Base class for sensors and actuators. Provides a lot of the low-level stuff required for communication with host computer (via TwirreLink serial protocol).
+ */
+
+
+Device::Device(const char* name, const char* description) //name within TwirreLink, and a general sensor description
 {
   _name = name;//(char*)malloc(strlen(name) + 1); //+1 for the NULL terminator
   //strcpy(_name, name);

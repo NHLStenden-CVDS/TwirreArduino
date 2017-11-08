@@ -1,3 +1,11 @@
+ /* 
+  * Copyright © 2017, Centre of Expertise Computer Vision & Data Science, NHL Stenden university of applied sciences
+  * All rights reserved.
+  * 
+  * no warranty, no liability
+  */
+
+
 #include <Wire.h>
 #include <SPI.h>
 //#include <SFE_MicroOLED.h>
@@ -17,20 +25,49 @@
 #include "Hedgehog.h"
 #include "OLED.h"
 
+
+/*
+ * Main file for Arduino code. Setup() is executed on board powerup or reset (will setup required sensors, and Loop() is repeated infinitely after that.
+ */
+
+
+//pin to which the heartbeat led is connected
 #define HBLED 23
+//number of loop iterations before heartbeat led toggles state. Adjust this for processor load per loop
+#define HBLED_TOGGLE_COUNT 1000
 
+/* 
+ * sensor configuration 
+ */
+//SRF08 ultrasonic sensor (i2c bus)
 #define SENS_SONAR true
+#define SENS_SONAR_ADDR 120
+//MyAHRS+ attitude heading reference system (magnetometer/compass, accelerometer, gyroscope) (i2c bus)
 #define SENS_MYAHRS false
-#define SENS_GR12 true
+//Marvelmind ultrasonic positioning system (i2c bus)
 #define SENS_HEDGEHOG false
-#define SENS_VOLTAGE true
+//FLIR Lepton thermographic camera (not recommended, the Lepton is very timing-sensitive and should be attached to fully dedicated microcontroller) (i2c bus)
 #define SENS_FLIR false
+//Lidar-Lite 1D laser ranging system (i2c bus, but has a special connector on TwirreShield because a ~600µF capacitor is recommended for the 
 #define SENS_LIDAR false
+//Test sensor which should always report a value of 42
 #define SENS_TEST false
+//following sensors are present on the arduino, so typically can be enabled always
+//voltage sensor for a 4-cell LiPo balance connector (voltage dividers are needed!, which are already present on TwirreShield)
+#define SENS_VOLTAGE true
+//sensor for measuring control inputs given by pilot. Enables NAZA actuator to perform manual command forwarding in autonomous mode (eg. auto control over yaw,gaz, with manual control over pitch,roll)
+#define SENS_GR12 true
 
+/*
+ * Actuator configuration
+ */
+//PWM signal generation for controlling NAZA flight controller
 #define ACT_NAZA true
+//RGB status led. Due to a design issue of TwirreShield the led colours are only controlled binary
 #define ACT_STATUSLED true
+//80x60 mini OLED display attachable to TwirreShield
 #define ACT_OLED false
+
 
 RequestHandler* requestHandler;
 
@@ -60,7 +97,6 @@ OLED * oled;
 DeviceList sensorList;
 DeviceList actuatorList;
 
-//MicroOLED oled(45, 1);
 void setup()
 {
   //use normal Wire as high-speed i2c (1MHz)
@@ -88,10 +124,9 @@ void setup()
   delay(2500);
   digitalWrite(HBLED, LOW);
 
-
   //Initialize sensor objects
   #if SENS_SONAR
-    sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+    sRFSonar = new SRFSonar("sonar1", SENS_SONAR_ADDR, SRF08);
     sensorList.Add(sRFSonar);
   #endif
   
@@ -146,7 +181,6 @@ void setup()
     actuatorList.Add(oled);
   #endif
   
-
   #if ACT_STATUSLED 
     statusled = new StatusLED("RGB_LED");
     actuatorList.Add(statusled);    
@@ -154,7 +188,7 @@ void setup()
   #endif
 
 
-
+  //pulse heartbeat led, and some delays for stabilisation
   delay(100);
   digitalWrite(HBLED, HIGH);
   delay(500);
@@ -166,9 +200,10 @@ void setup()
     SerialUSB.read();
   }
 
-  //create request handler
+  //create request handler (will handle serial communication with host PC)
   requestHandler = new RequestHandler(&sensorList, &actuatorList, &SerialUSB);
 
+  //final stabilisation delay
   delay(100);
 }
 
@@ -183,7 +218,7 @@ void loop()
   
   //heartbeat on TwirreShield led
   ctr++;
-  if(ctr == 1000)
+  if(ctr == HBLED_TOGGLE_COUNT)
   {
     ctr = 0;
     digitalWrite(HBLED, on);

@@ -1,3 +1,10 @@
+ /* 
+  * Copyright © 2017, Centre of Expertise Computer Vision & Data Science, NHL Stenden university of applied sciences
+  * All rights reserved.
+  * 
+  * no warranty, no liability
+  */
+
 #ifndef OLED_H_
 #define OLED_H_
 

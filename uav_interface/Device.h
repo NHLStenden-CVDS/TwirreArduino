@@ -1,3 +1,10 @@
+ /* 
+  * Copyright © 2017, Centre of Expertise Computer Vision & Data Science, NHL Stenden university of applied sciences
+  * All rights reserved.
+  * 
+  * no warranty, no liability
+  */
+
 #ifndef DEVICE_H_
 #define DEVICE_H_
 
@@ -72,12 +79,12 @@ class Device
     virtual void Update() {};
     
     /**
-     * TODO: doc
+     * Will be called when actuator parameters are changed through TwirreLink
      */
     virtual void ValuesChanged() {};
     
     /**
-     * TODO: doc
+     * Will be called when sensor values are requested through TwirreLink
      */
     virtual void OnRequest() {};
 

@@ -1,21 +1,31 @@
+ /* 
+  * Copyright © 2017, Centre of Expertise Computer Vision & Data Science, NHL Stenden university of applied sciences
+  * All rights reserved.
+  * 
+  * no warranty, no liability
+  */
+
 #include "Naza.h"
 #include "Arduino.h"
 
-//1100us @ 8.4MHz basefreq
+//1100µs @ 8.4MHz basefreq
 #define PWM_MIN 9240
 
-//1900us @ 8.4MHz basefreq
+//1900µs @ 8.4MHz basefreq
 #define PWM_MAX 15960
 
-//1500us @ 8.4MHz basefreq
+//1500µs @ 8.4MHz basefreq
 #define PWM_MIDDLE 12600
 
+//define which pins are used for the control channels (for arduino DUE: the high-accuracy PWM driver only works on pins 6 - 9)
 #define ROLL_CHANNEL 9
 #define PITCH_CHANNEL 8
 #define GAZ_CHANNEL 7
 #define YAW_CHANNEL 6
 
 #define CLAMP(X) (X) = ((X) < -1.0f) ? -1.0f : ((X) > 1.0f) ? 1.0f : (X);
+//define how big the naza deadzone is (with full control range being (-1,1) ). This will be corrected in software, eg. when a control output of 0.05 is requested, an actual output of approx. 0.15 is given to circumvent the NAZA controller's deadzone.
+//NAZA controller deadzone was determined to be in (-0.1,0.1) range.
 #define NAZA_DEADZONE 0.1
 
 Naza* Naza::_instance = nullptr;

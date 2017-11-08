@@ -1,3 +1,10 @@
+ /* 
+  * Copyright © 2017, Centre of Expertise Computer Vision & Data Science, NHL Stenden university of applied sciences
+  * All rights reserved.
+  * 
+  * no warranty, no liability
+  */
+
 #include "ActuatorExample.h"
 
 ActuatorExample::ActuatorExample(char* name, Stream* stream) : Device(name, "This actuator is used for testing purposes. A variable 'valueToSet' can be set.")

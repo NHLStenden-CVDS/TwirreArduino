@@ -1,3 +1,10 @@
+ /* 
+  * Copyright © 2017, Centre of Expertise Computer Vision & Data Science, NHL Stenden university of applied sciences
+  * All rights reserved.
+  * 
+  * no warranty, no liability
+  */
+
 #ifndef NAZA_H_
 #define NAZA_H_
 
@@ -6,6 +13,7 @@
 #include <inttypes.h>
 #include "GR12.h"
 
+//generates PWM signals for controlling DJI NAZA flight controller. See cpp for more info.
 class Naza : public Device
 {
   public:
