@@ -3,6 +3,9 @@
 #include <Wire.h>
 #include <cstdlib>
 
+const float SPEED_OF_SOUND = 343.0;  //m/s
+const float SPEED_OF_SOUND_US = SPEED_OF_SOUND / 1000000.0; // m / µs
+
 SRFSonar::SRFSonar(const char* name, uint8_t I2CAddress, SRFType type, uint8_t gain, uint8_t range) : Device(name, "This is a ultrasonic sensor. It can be used to measure distances."), _gain(gain), _range(range), _retransmitCtr(1), _type(type)
 {
   _I2CAddress = I2CAddress;
@@ -26,9 +29,12 @@ SRFSonar::SRFSonar(const char* name, uint8_t I2CAddress, SRFType type, uint8_t g
   
   _lastReadingRaw = (uint16_t *)malloc(sizeof(uint16_t) * _lastReadingRawLength);
   _lastReadingsBuffer = (uint16_t *)malloc(sizeof(uint16_t) * FILTER_WINDOW_SIZE);
+  _timestamp = 0;
   
   _AddVariable("firstDistance", &_firstDistance);
+  _AddVariable("firstDistanceCorrected", &_firstDistanceCorrected);
   _AddVariable("distanceValues", _lastReadingRaw, &_lastReadingRawLength);
+  _AddVariable("timestamp", &_timestamp);
   
   if(_hasLightSensor)
   {
@@ -93,7 +99,7 @@ void SRFSonar::startUltrasonicRanging()
   // step 1: instruct sensor to read echoes
   Wire1.beginTransmission(_I2CAddress); //transmit to sonar address
   Wire1.write(byte(0x00));      // sets register pointer to the command register (0x00)  
-  Wire1.write(byte(0x51));      // command sensor to measure in "centimeters" (0x51) 
+  Wire1.write(byte(0x52));      // command sensor to measure in "centimeters" (0x51) 
                                // use 0x50 for inches
                                // use 0x52 for ping microseconds
   Wire1.endTransmission();      // stop transmitting
@@ -155,13 +161,20 @@ static int compare_ui16 (const void * a, const void * b)
       _lastReadingRaw[i] = _lastReadingRaw[i] << 8;
       _lastReadingRaw[i] |= Wire1.read();
     }
+    _timestamp = micros();
 
     // median filtering
+#if FILTER_WINDOW_SIZE > 1
     uint16_t sortedValues[FILTER_WINDOW_SIZE];
     _lastReadingsBuffer[_lastReadingPointer] = _lastReadingRaw[0];
     _lastReadingPointer = (_lastReadingPointer + 1) % FILTER_WINDOW_SIZE;
     memcpy(sortedValues, _lastReadingsBuffer, sizeof(uint16_t) * FILTER_WINDOW_SIZE);
     qsort(sortedValues, FILTER_WINDOW_SIZE, sizeof(uint16_t), compare_ui16 );
     _firstDistance = sortedValues[FILTER_WINDOW_SIZE / 2];
+#else
+    _firstDistance = _lastReadingRaw[0];
+#endif
+    
+    _firstDistanceCorrected = static_cast<float>(_firstDistance) * (SPEED_OF_SOUND_US / 2); //sound has to travel twice the distance (to the object and back again)
   }
 }

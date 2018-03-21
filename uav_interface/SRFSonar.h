@@ -14,7 +14,7 @@
 #define SRF02_READ_VALUES 2
 
 // filtering settings
-#define FILTER_WINDOW_SIZE 3
+#define FILTER_WINDOW_SIZE 1
 
 #include "Device.h"
 
@@ -39,8 +39,10 @@ class SRFSonar : public Device
     void changeAddress(uint8_t address);
 
   private:
+    uint32_t _timestamp;  //timestamp for last reading
     uint16_t *_lastReadingRaw;
     uint16_t _firstDistance;
+    float _firstDistanceCorrected;  //unit corrected to metres
     uint32_t _lastReadingRawLength;
     uint8_t _I2CAddress;
     uint8_t _startAddress;

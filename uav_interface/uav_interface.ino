@@ -91,7 +91,7 @@ void setup()
 
   //Initialize sensor objects
   #if SENS_SONAR
-    sRFSonar = new SRFSonar("sonar1", 120, SRF08);
+    sRFSonar = new SRFSonar("sonar1", 120, SRF08, 0x00, 0x5e);  //default gain 0, range 0x8c (43 + 43*0x8c mm = ~6000mm). 0x5e ~ 4000mm. Sonar speed is 65ms/15Hz for 11000mm range (0xFF).
     sensorList.Add(sRFSonar);
   #endif
   
