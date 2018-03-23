@@ -23,7 +23,7 @@
  */
 
 //in here we initialise the PWM for the 2 motors and 1 servo
-Boat::Boat(const char* name) : Device(name, "With this actuator you can control Boat controllers")
+Boat::Boat(const char* name) : Device(name, "With this actuator you can control the boat")
 {  
   /* 
    *  some variables wich are used to transfer the dutycycle and direction variables over usb. Those should be the same as the ones on the odroid!
