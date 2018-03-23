@@ -1,53 +1,67 @@
+/*
+ * Twirre: architecture for autonomous UAVs using interchangeable commodity components
+ *
+ * Copyright© 2017 Centre of expertise in Computer Vision & Data Science, NHL Stenden University of applied sciences
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 #include "Boat.h"
 #include "Arduino.h"
 
-#define PWM_MAX_DUTY 4096  //12 bits PWM resolution
+//12 bits PWM resolution
+#define PWM_MAX_DUTY 4096  
 
-#define Pin_Main_Thruster 7   //Here the pins are defined for the motors and servos
-#define Pin_Bow_Thruster 8
-#define Pin_Rudder 9
-
-#define Initialise_Duty_Main_Thruster 309  //the base pwm valeus of the pins in bytes
-#define Initialise_Duty_Bow_Thruster 309   //After some testing the motors fully standstill at 309 bytes. instead of the calculated 307.
-#define Initialise_Duty_Rudder 287
+//define which pins are used for the control channels (for arduino DUE: the high-accuracy PWM driver only works on pins 6 - 9)
+#define MAIN_CHANNEL 9   
+#define BOW_CHANNEL 8
+#define RUDDER_CHANNEL 7
 
 /*
  * 4096 is max so 100% dutycycle
  * both main and bowscrew need a 1,5ms base PWM to stand still
  * the rudder needs a 1,4ms dutycycle to stand in the middle and sail forward
  * to calculate the amount of bytes needed to achieve those times we can just use a scale 0-4096 = 0-20ms
- *               base  low   high  diff  pin
- * main screw =  307   287   327   20    9
- * bow screw  =  307   266   348   41    8
- * Ruddder    =  287   185   389   102   7
  */
 
-//in here we initialise the PWM for the 2 motors and 1 servo
+//define PWM base values
+#define MAIN_PWM_MIN 287
+#define MAIN_PWM_MAX 327
+#define MAIN_PWM_MIDDLE 309
+
+#define BOW_PWM_MIN 266
+#define BOW_PWM_MAX 348
+#define BOW_PWM_MIDDLE 309
+
+#define RUDDER_PWM_MIN 185
+#define RUDDER_PWM_MAX 389
+#define RUDDER_PWM_MIDDLE 287
+
 Boat::Boat(const char* name) : Device(name, "With this actuator you can control the boat")
 {  
-  /* 
-   *  some variables wich are used to transfer the dutycycle and direction variables over usb. Those should be the same as the ones on the odroid!
-   */ 
   
-  //the dutycycle variables
-  _AddVariable("Motor_Duty_Main_Thruster", &_DUTY_MAIN_THRUSTER);
-  _AddVariable("Motor_Duty_Bow_Thruster", &_DUTY_BOW_THRUSTER);
-  _AddVariable("Servo_Duty_Rudder", &_DUTY_RUDDER);
+  // add the variables so they can be changed
+  _AddVariable("Duty_Main", &_DUTY_MAIN);
+  _AddVariable("Duty_Bow", &_DUTY_BOW);
+  _AddVariable("Duty_Rudder", &_DUTY_RUDDER);
   
-  //the direction variables
-  _AddVariable("Motor_Dir_Main_Thruster", &_DIR_MAIN_THRUSTER);
-  _AddVariable("Motor_Dir_Bow_Thruster", &_DIR_BOW_THRUSTER);
-  _AddVariable("Servo_Dir_Rudder", &_DIR_RUDDER);
+  _AddVariable("Dir_Main", &_DIR_MAIN);
+  _AddVariable("Dir_Bow", &_DIR_BOW);
+  _AddVariable("Dir_Rudder", &_DIR_RUDDER);
 
-  //here we set the frequency
-  //in our case it its 50Hz @ 12 bits (4096)
+  //setup PWM
+  //50Hz @ 12 bits (4096)
   pmc_enable_periph_clk(PWM_INTERFACE_ID);
   PWMC_ConfigureClocks(50 * PWM_MAX_DUTY, 0, VARIANT_MCK);                
 
   //here we set the length of each PWM signal (the base value)
-  InitialiseDutyCycle(Pin_Main_Thruster, Initialise_Duty_Main_Thruster);
-  InitialiseDutyCycle(Pin_Bow_Thruster, Initialise_Duty_Bow_Thruster);
-  InitialiseDutyCycle(Pin_Rudder, Initialise_Duty_Rudder);
+  InitDuty(MAIN_CHANNEL, MAIN_PWM_MIDDLE);
+  InitDuty(BOW_CHANNEL, BOW_PWM_MIDDLE);
+  InitDuty(RUDDER_CHANNEL, RUDDER_PWM_MIDDLE);
 }
 
 
@@ -59,9 +73,9 @@ void Boat::Update()
   SetDutyCycle_Rudder(_DUTY_RUDDER,_DIR_RUDDER);
 
   //printing all the received values
-  //Serial.print(" [duty-main = "); Serial.print(_DUTY_MAIN_THRUSTER); Serial.print(" dir-main = "); Serial.print(_DIR_MAIN_THRUSTER); Serial.print("]");
-  //Serial.print(" [duty-bow = "); Serial.print(_DUTY_BOW_THRUSTER); Serial.print(" dir-bow = "); Serial.print(_DIR_BOW_THRUSTER); Serial.print("]");
-  //Serial.print(" [duty-rudder = "); Serial.print(_DUTY_RUDDER); Serial.print(" dir-rudder = "); Serial.print(_DIR_RUDDER); Serial.println("]");
+  Serial.print(" [duty-main = "); Serial.print(_DUTY_MAIN); Serial.print(" dir-main = "); Serial.print(_DIR_MAIN); Serial.print("]");
+  Serial.print(" [duty-bow = "); Serial.print(_DUTY_BOW); Serial.print(" dir-bow = "); Serial.print(_DIR_BOW); Serial.print("]");
+  Serial.print(" [duty-rudder = "); Serial.print(_DUTY_RUDDER); Serial.print(" dir-rudder = "); Serial.print(_DIR_RUDDER); Serial.println("]");
   /*
    * however for the motors we need to wait a moment:
    * if we switch direction fast on both motors they will break. Therefor those cases are created so we dont break em if we switch direction quickly.
@@ -69,33 +83,33 @@ void Boat::Update()
    */
   switch(state){
     case 0:
-      if(_DIR_MAIN_THRUSTER != prev_DIR_MAIN_THRUSTER){
+      if(_DIR_MAIN != prev_DIR_MAIN){
         state = 1;
-        prev_DIR_MAIN_THRUSTER = _DIR_MAIN_THRUSTER;
+        prev_DIR_MAIN = _DIR_MAIN;
         lastUpdate = micros ();
       }
-      if(_DIR_BOW_THRUSTER != prev_DIR_BOW_THRUSTER){
+      if(_DIR_BOW != prev_DIR_BOW){
         state = 3;
-        prev_DIR_BOW_THRUSTER = _DIR_BOW_THRUSTER;
+        prev_DIR_BOW = _DIR_BOW;
         lastUpdate = micros ();
       }
       else {
-        SetDutyCycle_Main_Thruster(_DUTY_MAIN_THRUSTER, _DIR_MAIN_THRUSTER);
-        SetDutyCycle_Bow_Thruster(_DUTY_BOW_THRUSTER, _DIR_BOW_THRUSTER);
+        SetDutyCycle_Main(_DUTY_MAIN, _DIR_MAIN);
+        SetDutyCycle_Bow(_DUTY_BOW, _DIR_BOW);
       }
       break;
     
     
     //cases for the main motor
     case 1:
-      SetDutyCycle_Main_Thruster(0, 0);        //Stop the motor
+      SetDutyCycle_Main(0, 0);        //Stop the motor
       if(lastUpdate < (micros() - 50000)){  //wait 50ms then switch to state 2
         state = 2;
         lastUpdate = micros ();
       }
      break;
     case 2:
-      SetDutyCycle_Main_Thruster(_DUTY_MAIN_THRUSTER, _DIR_MAIN_THRUSTER); //set direction and cycle to the new valeus
+      SetDutyCycle_Main(_DUTY_MAIN, _DIR_MAIN); //set direction and cycle to the new valeus
       if(lastUpdate < (micros() - 50000)){                        //wait again 50ms then switch to state 0
       state = 0;
       }
@@ -104,14 +118,14 @@ void Boat::Update()
     
     //cases for the bow motor
     case 3:
-      SetDutyCycle_Bow_Thruster(0, 0);         //Stop the motor
+      SetDutyCycle_Bow(0, 0);         //Stop the motor
       if(lastUpdate < (micros() - 50000)){  //wait 50ms then switch to state 4
         state = 4;
         lastUpdate = micros ();
       }
     break;
     case 4:
-      SetDutyCycle_Bow_Thruster(_DUTY_BOW_THRUSTER, _DIR_BOW_THRUSTER);  //set direction and cycle to the new valeus
+      SetDutyCycle_Bow(_DUTY_BOW, _DIR_BOW);  //set direction and cycle to the new valeus
       if(lastUpdate < (micros() - 50000)){                        //wait again 50ms then switch to state 0
       state = 0;
       }
@@ -125,7 +139,7 @@ void Boat::Update()
 
 
 
-int Boat::InitialiseDutyCycle(int pin, int dutycycle)
+int Boat::InitDuty(int pin, int dutycycle)
 {
   /*
    * In here we set the dutycycle for the pwm pin
@@ -146,54 +160,54 @@ int Boat::InitialiseDutyCycle(int pin, int dutycycle)
 
 
 
-void Boat::SetDutyCycle_Main_Thruster(int duty_Main_Thruster, int dir_Main_Thruster)                                 
+void Boat::SetDutyCycle_Main(int duty_Main, int dir_Main)                                 
 {   
-    int dir_Main_Thruster_Factor = 0;
-    duty_Main_Thruster = map(duty_Main_Thruster, 0, 100, 0, 20);
+    int dir_Main_Factor = 0;
+    duty_Main = map(duty_Main, 0, 100, 0, 20);
     /*
-     * duty_Main_Thruster should be 0-20 if the number is higher the rudder might go to fast and break
+     * duty_Main should be 0-20 if the number is higher the rudder might go to fast and break
      * the dir is 0,1 or 2. 2 for forward, 0 for backward, 1 means that the motor will stand still
      */
-    if (dir_Main_Thruster == 0){
-      dir_Main_Thruster_Factor = -1;
+    if (dir_Main == 0){
+      dir_Main_Factor = -1;
     }
-    else if (dir_Main_Thruster == 2){
-      dir_Main_Thruster_Factor = 1;
+    else if (dir_Main == 2){
+      dir_Main_Factor = 1;
     }
     else{                        //if the usb buffer sends stupid shit wich is not 0 or 2, it wil simply do nothing with it because the factor is 0.
-      dir_Main_Thruster_Factor = 0;
+      dir_Main_Factor = 0;
     }
     
-    duty_Main_Thruster = duty_Main_Thruster * dir_Main_Thruster_Factor;    
-    if (duty_Main_Thruster >= 20) duty_Main_Thruster = 20;            //a limiter so that the dutycycle doesnt exceed the maximum number so it wont break the motor/servo  
-    if (duty_Main_Thruster <= -20) duty_Main_Thruster = -20;                                    
-    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[Pin_Main_Thruster].ulPWMChannel, Initialise_Duty_Main_Thruster + duty_Main_Thruster); //base ~1,5ms = 309 bytes
+    duty_Main = duty_Main * dir_Main_Factor;    
+    if (duty_Main >= 20) duty_Main = 20;            //a limiter so that the dutycycle doesnt exceed the maximum number so it wont break the motor/servo  
+    if (duty_Main <= -20) duty_Main = -20;                                    
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[MAIN_CHANNEL].ulPWMChannel, MAIN_PWM_MIDDLE + duty_Main); //base ~1,5ms = 309 bytes
 }
 
 
 
 
-void Boat::SetDutyCycle_Bow_Thruster(int duty_Bow_Thruster, int dir_Bow_Thruster)                                   
+void Boat::SetDutyCycle_Bow(int duty_Bow, int dir_Bow)                                   
 {   
-    int dir_Bow_Thruster_Factor = 0;
-    duty_Bow_Thruster = map(duty_Bow_Thruster, 0, 100, 0, 41);
+    int dir_Bow_Factor = 0;
+    duty_Bow = map(duty_Bow, 0, 100, 0, 41);
     /*
      * duty_Bow_screw should be between 0-41
      * the dir is 0,1 or 2. I didnt use the bow thruster since the boat was unstable and the bow thruster wasnt always in the water
      */
-    if (dir_Bow_Thruster == 0){
-      dir_Bow_Thruster_Factor = -1;
+    if (dir_Bow == 0){
+      dir_Bow_Factor = -1;
     }
-    else if (dir_Bow_Thruster == 2){
-      dir_Bow_Thruster_Factor = 1;
+    else if (dir_Bow == 2){
+      dir_Bow_Factor = 1;
     }
     else {                      //if the usb buffer sends stupid shit wich is not 0 or 2, it wil simply do nothing with it because the factor is 0.
-      dir_Bow_Thruster_Factor = 0;
+      dir_Bow_Factor = 0;
     }
-    duty_Bow_Thruster = duty_Bow_Thruster * dir_Bow_Thruster_Factor;   
-    if (duty_Bow_Thruster >= 41) duty_Bow_Thruster = 41;            //a limiter so that the dutycycle doesnt exceed the maximum number so it wont break the motor/servo   
-    if (duty_Bow_Thruster <= -41) duty_Bow_Thruster = -41;                                 
-    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[Pin_Bow_Thruster].ulPWMChannel, Initialise_Duty_Bow_Thruster + duty_Bow_Thruster);  //base ~1,5ms = 309 bytes  
+    duty_Bow = duty_Bow * dir_Bow_Factor;   
+    if (duty_Bow >= 41) duty_Bow = 41;            //a limiter so that the dutycycle doesnt exceed the maximum number so it wont break the motor/servo   
+    if (duty_Bow <= -41) duty_Bow = -41;                                 
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[BOW_CHANNEL].ulPWMChannel, BOW_PWM_MIDDLE + duty_Bow);  //base ~1,5ms = 309 bytes  
 }
 
 
@@ -224,9 +238,8 @@ void Boat::SetDutyCycle_Rudder(int duty_Rudder, int dir_Rudder)
     //if (duty_Rudder >= 102) duty_Rudder = 102;                //a limiter so that the dutycycle doesnt exceed the maximum number so it wont break the motor/servo   
     //if (duty_Rudder <= -102) duty_Rudder = -102;                                                
     
-    Serial.println(Initialise_Duty_Rudder + duty_Rudder);
     
-    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[Pin_Rudder].ulPWMChannel, Initialise_Duty_Rudder + duty_Rudder);      //base ~1,4ms = 287 bytes           
+    PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[RUDDER_CHANNEL].ulPWMChannel, RUDDER_PWM_MIDDLE + duty_Rudder);      //base ~1,4ms = 287 bytes           
 }
 
 
