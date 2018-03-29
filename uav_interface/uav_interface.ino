@@ -22,7 +22,7 @@
 #define SENS_SONAR true
 #define SENS_MYAHRS false
 #define SENS_GR12 true
-#define SENS_HEDGEHOG false
+#define SENS_HEDGEHOG true
 #define SENS_VOLTAGE true
 #define SENS_FLIR false
 #define SENS_LIDAR false

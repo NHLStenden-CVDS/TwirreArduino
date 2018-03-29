@@ -6,10 +6,20 @@ Hedgehog::Hedgehog(const char* name) : Device(name, "Hedgehog, ultrasonic positi
   _AddVariable("pos_x", &_pos_x);
   _AddVariable("pos_y", &_pos_y);
   _AddVariable("pos_z", &_pos_z);
+  _AddVariable("pos_time", &_pos_timestamp);
+  _AddVariable("lastfail", &_lastfail);
+  _AddVariable("failcount", &_failcount);
+  _AddVariable("failbyte", &_failbyte);
   init();
 }
 
 void Hedgehog::init(){
+  _pos_x = 0;
+  _pos_y = 0;
+  _pos_z = 0;
+  _pos_timestamp = 0;
+  _failcount = 0;
+  _lastfail = -1;
   // start the SPI library
   pinMode(53, OUTPUT);
   digitalWrite(53, HIGH);
@@ -46,26 +56,71 @@ void Hedgehog::loop_hedgehog(){
     incoming_byte= SPI.transfer(0x00);// read byte from hedgehog  
     //Serial.println(incoming_byte);
     hedgehog_spi_buf[i]= incoming_byte;  
-    
-    // check first 5 bytes for constant value
-    if (i<5)
-    {
-      if (incoming_byte != hedgehog_packet_header[i]) 
-      {
-        packet_received= false;// packet header error
-      }
-    }     
   }
-  
+
   delayMicroseconds(50);
-  digitalWrite(HEDGEHOG_CS_PIN, HIGH);// hedgehog chip unselect   
+  digitalWrite(HEDGEHOG_CS_PIN, HIGH);// hedgehog chip unselect  
+
+  packet_received = false;
+  _lastfail = -1;
+  //check header
+  if(hedgehog_spi_buf[0] != 0xff || hedgehog_spi_buf[1] != 0x47)
+  {
+    _lastfail = 1;  // header error
+    _failbyte = hedgehog_spi_buf[1];
+    _failcount++;
+  }
+  else if(!(hedgehog_spi_buf[2] == 0x01 || hedgehog_spi_buf[2] == 0x11) || hedgehog_spi_buf[3] != 0x00)
+  {
+    _lastfail = 2;  // unrecognized packet type
+    _failbyte = hedgehog_spi_buf[2];
+    _failcount++;
+  }
+  else
+  {
+    packet_received = true;
+  }
+   
   if (packet_received){
-    hedgehog_set_crc16(&hedgehog_spi_buf[0], HEDGEHOG_PACKET_SIZE);// calculate CRC checksum of packet
-    if ((hedgehog_spi_buf[HEDGEHOG_PACKET_SIZE] == 0)&&(hedgehog_spi_buf[HEDGEHOG_PACKET_SIZE+1] == 0)){// checksum success
-      _pos_x= int(hedgehog_spi_buf[9]) + (int(hedgehog_spi_buf[10])<<8);
-      _pos_y= int(hedgehog_spi_buf[11]) + (int(hedgehog_spi_buf[12])<<8);// coordinates of hedgehog (X,Y), cm
-      _pos_z= int(hedgehog_spi_buf[13]) + (int(hedgehog_spi_buf[14])<<8);// height of hedgehog, cm (FW V3.97+)
-      hedgehog_pos_updated= true;// flag of new data from hedgehog received
+    if(hedgehog_spi_buf[4] == 0x10)
+    {
+      //old cm-resolution packet
+      hedgehog_set_crc16(&hedgehog_spi_buf[0], 23);// calculate CRC checksum of packet
+      if ((hedgehog_spi_buf[23] == 0)&&(hedgehog_spi_buf[24] == 0)){// checksum success
+        _pos_x= static_cast<float>(int(hedgehog_spi_buf[9]) | (int(hedgehog_spi_buf[10])<<8)) / 100.0f;
+        _pos_y= static_cast<float>(int(hedgehog_spi_buf[11]) | (int(hedgehog_spi_buf[12])<<8)) / 100.0f; // coordinates of hedgehog (X,Y), cm
+        _pos_z= static_cast<float>(int(hedgehog_spi_buf[13]) | (int(hedgehog_spi_buf[14])<<8)) / 100.0f; // height of hedgehog, cm (FW V3.97+)
+        hedgehog_pos_updated= true;// flag of new data from hedgehog received
+        _pos_timestamp = micros();
+      }
+      else
+      {
+        _lastfail = 4;  // crc error
+        _failcount++;
+      }
+    }
+    else if(hedgehog_spi_buf[4] == 0x16)
+    {
+      //new mm-resolution packet
+      hedgehog_set_crc16(&hedgehog_spi_buf[0], 29);// calculate CRC checksum of packet
+      if ((hedgehog_spi_buf[29] == 0)&&(hedgehog_spi_buf[30] == 0)){// checksum success
+        _pos_x= static_cast<float>(int(hedgehog_spi_buf[9]) | (int(hedgehog_spi_buf[10])<<8) | (int(hedgehog_spi_buf[11])<<16) | (int(hedgehog_spi_buf[12])<<24)) / 1000.0f;
+        _pos_y= static_cast<float>(int(hedgehog_spi_buf[13]) | (int(hedgehog_spi_buf[14])<<8) | (int(hedgehog_spi_buf[15])<<16) | (int(hedgehog_spi_buf[16])<<24)) / 1000.0f;
+        _pos_z= static_cast<float>(int(hedgehog_spi_buf[17]) | (int(hedgehog_spi_buf[18])<<8) | (int(hedgehog_spi_buf[19])<<16) | (int(hedgehog_spi_buf[20])<<24)) / 1000.0f;
+        hedgehog_pos_updated= true;// flag of new data from hedgehog received
+        _pos_timestamp = micros();
+      }
+      else
+      {
+        _lastfail = 4;  // crc error
+        _failcount++;
+      }
+    }
+    else
+    {
+      _lastfail = 3;  // payload size error
+      _failbyte = hedgehog_spi_buf[4];
+      _failcount++;
     }
   }
 }

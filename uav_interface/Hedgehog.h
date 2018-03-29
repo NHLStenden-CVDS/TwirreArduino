@@ -4,8 +4,8 @@
 #include "Device.h"
 
 #define HEDGEHOG_CS_PIN 52
-#define HEDGEHOG_BUF_SIZE 30 
-#define HEDGEHOG_PACKET_SIZE 23
+#define HEDGEHOG_BUF_SIZE 32 
+#define HEDGEHOG_PACKET_SIZE 29
 
 class Hedgehog : public Device
 {
@@ -18,8 +18,12 @@ class Hedgehog : public Device
     void hedgehog_set_crc16(uint8_t *buf, uint8_t size);
 
   
-    int16_t _pos_x, _pos_y, _pos_z;
+    float _pos_x, _pos_y, _pos_z;
+    uint32_t _pos_timestamp;
     uint8_t hedgehog_spi_buf[HEDGEHOG_BUF_SIZE];
+    int8_t _lastfail;
+    uint8_t _failbyte;
+    int32_t _failcount;
     
     const int hedgehog_packet_header[5]= {0xff, 0x47, 0x01, 0x00, 0x10};
     typedef union {uint8_t b[2]; unsigned int w;} uni_8x2_16;

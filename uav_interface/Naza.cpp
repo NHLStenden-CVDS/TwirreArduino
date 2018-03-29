@@ -108,7 +108,7 @@ void Naza::writeDefaultStickValues()
 //Called every 1ms
 void TC3_Handler()
 {  
-  Naza::Instance()->writeStickValues();
+  
   
   // Clear interrupt status
   TC_GetStatus(TC1, 0);
@@ -119,6 +119,10 @@ void TC3_Handler()
   if(--*timeout == 0)
   {
     Naza::Instance()->writeDefaultStickValues();
+  }
+  else
+  {
+    Naza::Instance()->writeStickValues();
   }
 }
 

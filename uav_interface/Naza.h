@@ -29,10 +29,10 @@ class Naza : public Device
     
     uint32_t _timeout;
 
-    uint8_t _auto_pitch = 1;
-    uint8_t _auto_yaw = 1;
-    uint8_t _auto_gaz = 1;
-    uint8_t _auto_roll = 1;
+    uint8_t _auto_pitch = 0;
+    uint8_t _auto_yaw = 0;
+    uint8_t _auto_gaz = 0;
+    uint8_t _auto_roll = 0;
 
     float _pitch_deadzone = 0;
     float _yaw_deadzone = 0;
