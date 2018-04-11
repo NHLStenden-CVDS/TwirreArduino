@@ -25,17 +25,16 @@ class Boat : public Device
     Boat(const char* name);
     void Update();
     
-    float _DUTY_MAIN = 0;
-    float _DUTY_BOW = 0;
-    float _DUTY_RUDDER = 0;
-
-    uint8_t _DIR_MAIN = 1;
-    uint8_t _DIR_BOW = 1;
-    uint8_t _DIR_RUDDER = 1;
+    signed int _MAIN_DIR = 0;
+    uint8_t _MAIN_SPEED = 0;
+    signed int _BOW_DIR = 0;
+    signed int _RUDDER_ANGLE = 0;
     
   private:
-    uint16_t lastUpdate; 
-    int state = 0, prev_DIR_MAIN = 0, prev_DIR_BOW = 0;
+    uint16_t last_update; 
+    int state = 0;
+	int old_dir = 0;
+	int duty_cycle = 0;
 
     int InitDuty(int pin, int dutycycle);
     
