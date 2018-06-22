@@ -14,10 +14,18 @@ TwirreArduino is software for the Arduino DUE which enables it to easily be used
 TwirreArduino includes the TwirreSerial protocol for communication between the Arduino DUE and a computer running TwirreLink software. The protocol specification can be found here: <https://github.com/NHLStenden-CVDS/Twirre/releases/download/doc-alpha/twirreSerialProtocol.pdf>
 
 ## How to Build
-TwirreArduino can be loaded, compiled and flashed by the Arduino IDE. The sensors and actuators can be configured in the **uav_interface.ino** file. 
+This project contains a project file for [Sloeber, a free and open Arduino IDE based on Eclipse][sloeber], which is the recommended way to build and flash the software.
+* Start Sloeber
+* Ensure Arduino DUE files are available (Arduino > Preferences > Arduino > Platforms and Boards > arduino > Arduino SAM boards... > [select latest version])
+* Load project into Sloeber (File > Import... > General > Existing projects into workspace)
+* Press 'upload' button (if needed, follow instructions for setting port)
 
 ## License
 TwirreArduino has been made available under the MIT license (see **LICENSE**).
 
 ## Examples
 Examples to be added at a later date
+
+
+
+[sloeber]: http://eclipse.baeyens.it/index.shtml
