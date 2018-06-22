@@ -57,8 +57,9 @@
 #define SENS_LIDAR false
 //Test sensor which should always report a value of 42
 #define SENS_TEST false
+
 //following sensors are present on the arduino, so typically can be enabled always
-//voltage sensor for a 4-cell LiPo balance connector (voltage dividers are needed!, which are already present on TwirreShield)
+//voltage sensor for a 4-cell LiPo balance connector (!!voltage dividers are needed!!, which are already present on TwirreShield)
 #define SENS_VOLTAGE true
 //sensor for measuring control inputs given by pilot. Enables NAZA actuator to perform manual command forwarding in autonomous mode (eg. auto control over yaw,gaz, with manual control over pitch,roll)
 #define SENS_GR12 true
@@ -131,7 +132,7 @@ void setup()
 
   //Initialize sensor objects
   #if SENS_SONAR
-    sRFSonar = new SRFSonar("sonar1", SENS_SONAR_ADDR, SRF08);
+    sRFSonar = new SRFSonar("sonar1", 120, SRF08, 0x00, 0x5e);  //default gain 0, range 0x8c (43 + 43*0x8c mm = ~6000mm). 0x5e ~ 4000mm. Sonar speed is 65ms/15Hz for 11000mm range (0xFF).
     sensorList.Add(sRFSonar);
   #endif
   
