@@ -4,7 +4,7 @@
  * Copyright© 2017 Centre of expertise in Computer Vision & Data Science, NHL Stenden University of applied sciences
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -41,8 +41,8 @@
 //number of loop iterations before heartbeat led toggles state. Adjust this for processor load per loop
 #define HBLED_TOGGLE_COUNT 1000
 
-/* 
- * sensor configuration 
+/*
+ * sensor configuration
  */
 //SRF08 ultrasonic sensor (i2c bus)
 #define SENS_SONAR true
@@ -53,7 +53,7 @@
 #define SENS_HEDGEHOG false
 //FLIR Lepton thermographic camera (not recommended, the Lepton is very timing-sensitive and should be attached to fully dedicated microcontroller) (i2c bus)
 #define SENS_FLIR false
-//Lidar-Lite 1D laser ranging system (i2c bus, but has a special connector on TwirreShield because a ~600µF capacitor is recommended for the 
+//Lidar-Lite 1D laser ranging system (i2c bus, but has a special connector on TwirreShield because a ~600µF capacitor is recommended for the
 #define SENS_LIDAR false
 //Test sensor which should always report a value of 42
 #define SENS_TEST false
@@ -124,8 +124,8 @@ void setup()
 
   //configure TwirreShield led
   pinMode(HBLED,OUTPUT);
-  digitalWrite(HBLED, HIGH);  
-  
+  digitalWrite(HBLED, HIGH);
+
   //delay to stabilize power and stuff
   delay(2500);
   digitalWrite(HBLED, LOW);
@@ -135,7 +135,7 @@ void setup()
     sRFSonar = new SRFSonar("sonar1", 120, SRF08, 0x00, 0x5e);  //default gain 0, range 0x8c (43 + 43*0x8c mm = ~6000mm). 0x5e ~ 4000mm. Sonar speed is 65ms/15Hz for 11000mm range (0xFF).
     sensorList.Add(sRFSonar);
   #endif
-  
+
   #if SENS_MYAHRS
     aHRS = new AHRSplus("myAHRS+");
     sensorList.Add(aHRS);
@@ -156,7 +156,7 @@ void setup()
     sensorList.Add(vsensor);
   #endif
 
-  #if SENS_FLIR 
+  #if SENS_FLIR
     flir = new FLIRLepton("flir",4,5);
     sensorList.Add(flir);
   #endif
@@ -173,7 +173,7 @@ void setup()
 
 
   //Initialize actuator objects
-  #if ACT_NAZA 
+  #if ACT_NAZA
     #if SENS_GR12
       naza = Naza::Initialize("naza", gR12);
     #else
@@ -186,10 +186,10 @@ void setup()
     oled = new OLED("OLED");
     actuatorList.Add(oled);
   #endif
-  
-  #if ACT_STATUSLED 
+
+  #if ACT_STATUSLED
     statusled = new StatusLED("RGB_LED");
-    actuatorList.Add(statusled);    
+    actuatorList.Add(statusled);
     statusled->SetValue(0,255,0);
   #endif
 
@@ -199,7 +199,7 @@ void setup()
   digitalWrite(HBLED, HIGH);
   delay(500);
   digitalWrite(HBLED, LOW);
-  
+
   //clear the serial buffer
   while (SerialUSB.available())
   {
@@ -221,13 +221,13 @@ void loop()
   requestHandler->SendAndReceive();
   sensorList.UpdateAll();
   actuatorList.UpdateAll();
-  
+
   //heartbeat on TwirreShield led
   ctr++;
   if(ctr == HBLED_TOGGLE_COUNT)
   {
     ctr = 0;
     digitalWrite(HBLED, on);
-    on = 1 - on; 
+    on = 1 - on;
   }
 }
