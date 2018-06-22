@@ -18,8 +18,25 @@
 const float SPEED_OF_SOUND = 343.0;  //m/s
 const float SPEED_OF_SOUND_US = SPEED_OF_SOUND / 1000000.0;  // m / µs
 
-SRFSonar::SRFSonar(const char* name, uint8_t I2CAddress, SRFType type, uint8_t gain, uint8_t range) :
-		Device(name, "This is a ultrasonic sensor. It can be used to measure distances."), _gain(gain), _range(range), _retransmitCtr(1), _type(type)
+SRFSonarCfg::SRFSonarCfg(const char * name, uint8_t gain, uint8_t range):
+		Device(name, "Configuration actuator for a matching ultrasonic sensor")
+{
+	_gain = gain;
+	_range = range;
+
+	_AddVariable("gain", &_gain);
+	_AddVariable("range", &_range);
+}
+
+void SRFSonarCfg::Update()
+{
+	//force limits for gain, range
+	if(_gain > 0x1F) _gain = 0x1F;
+}
+
+
+SRFSonar::SRFSonar(const char* name, uint8_t I2CAddress, SRFType type, const SRFSonarCfg & cfg) :
+		Device(name, "This is a ultrasonic sensor. It can be used to measure distances."), _config(cfg), _retransmitCtr(1), _type(type)
 {
 	_I2CAddress = I2CAddress;
 
@@ -99,8 +116,8 @@ void SRFSonar::startUltrasonicRanging()
 			Wire1.write(byte(0x01));      // sets register pointer to gain register
 
 			//write gain and range settings to sonar
-			Wire1.write(byte(_gain));
-			Wire1.write(byte(_range));
+			Wire1.write(byte(_config._gain));
+			Wire1.write(byte(_config._range));
 
 			Wire1.endTransmission();      // stop transmitting
 
@@ -143,10 +160,13 @@ void SRFSonar::changeAddress(uint8_t address)
 	_I2CAddress = address;
 }
 
+// used for median filtering
+#if FILTER_WINDOW_SIZE > 1
 static int compare_ui16(const void * a, const void * b)
 {
 	return (*(uint16_t*) a - *(uint16_t*) b);
 }
+#endif
 
 // Function which reads the value from the ultrasonic sensor.
 void SRFSonar::readUltrasonicSensorValue()
@@ -168,7 +188,7 @@ void SRFSonar::readUltrasonicSensorValue()
 			_lightSensorValue = Wire1.read();
 		}
 
-		for (int i = 0; i < _lastReadingRawLength; i++)
+		for (uint16_t i = 0; i < _lastReadingRawLength; i++)
 		{
 			_lastReadingRaw[i] = Wire1.read();
 			_lastReadingRaw[i] = _lastReadingRaw[i] << 8;

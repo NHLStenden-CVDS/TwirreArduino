@@ -35,21 +35,41 @@ enum SRFType
 	SRF08, SRF02
 };
 
-class SRFSonar: public Device
+//forward declaration required
+class SRFSonar;
+
+/* config actuator for a SRFSonar */
+class SRFSonarCfg: public Device
 {
+	friend class SRFSonar;
 public:
 	/**
 	 * Gain: Reduce if the sonar picks up 'false' echoes. Increase if the sonar fails to receive
 	 * the correct echo. (0x1F is max and default, but caused severe ghost echo problems).
+	 *
 	 * Range:lower values will cause lower maximum range, but increases refresh rate. Lower ranges
 	 * require a lower gain value. Default = 0xFF (11 meters). As the SRF08 cannot reliably range beyond
 	 * 6 meters, this setting is recommended to be 0x8C (6 meters).
 	 */
-	SRFSonar(const char *name, uint8_t I2CAddress, SRFType type, uint8_t gain = 0x00, uint8_t range = 0x8C);
+	SRFSonarCfg(const char * name, uint8_t gain = 0x00, uint8_t range = 0x8C);
+	void Update();
+private:
+	uint8_t _gain;
+	uint8_t _range;
+};
+
+class SRFSonar: public Device
+{
+public:
+
+	SRFSonar(const char *name, uint8_t I2CAddress, SRFType type, const SRFSonarCfg & cfg);
 	void Update();
 	void changeAddress(uint8_t address);
 
 private:
+	const SRFSonarCfg & _config;
+
+
 	uint32_t _timestamp;  //timestamp for last reading
 	uint16_t *_lastReadingRaw;
 	uint16_t _firstDistance;
@@ -66,8 +86,7 @@ private:
 	uint8_t _lastReadingPointer = 0;
 	uint16_t *_lastReadingsBuffer;
 
-	uint8_t _gain;
-	uint8_t _range;
+
 	uint16_t _retransmitCtr;
 
 	SRFType _type;
