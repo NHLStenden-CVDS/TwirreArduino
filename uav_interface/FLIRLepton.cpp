@@ -57,7 +57,7 @@ FLIRLepton::FLIRLepton(char* name, int slavePin, int pwrPin) :
 void FLIRLepton::Update()
 {
 	int counter = 0;
-	int lastCounter = 0;
+	//int lastCounter = 0;
 	unsigned long curTime = millis();  //Current time;
 
 	switch (_state)

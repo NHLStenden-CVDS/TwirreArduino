@@ -232,7 +232,7 @@ void OLED::pixel(uint8_t x, uint8_t y)
 
 void OLED::pixel(uint8_t x, uint8_t y, uint8_t color, uint8_t mode)
 {
-	if ((x < 0) || (x >= LCDWIDTH) || (y < 0) || (y >= LCDHEIGHT)) return;
+	if (/*(x < 0) ||*/ (x >= LCDWIDTH) /* || (y < 0)*/ || (y >= LCDHEIGHT)) return;
 
 	if (mode == XOR)
 	{
@@ -277,7 +277,7 @@ void OLED::setDrawMode(uint8_t mode)
 
 uint8_t OLED::setFontType(uint8_t type)
 {
-	if ((type >= TOTALFONTS) || (type < 0)) return false;
+	if ((type >= TOTALFONTS) /*|| (type < 0)*/) return false;
 
 	fontType = type;
 	fontWidth = pgm_read_byte(fontsPointer[fontType] + 0);

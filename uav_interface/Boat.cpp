@@ -134,6 +134,8 @@ int Boat::InitialiseDutyCycle(int pin, int dutycycle)
 	PWMC_SetPeriod(PWM_INTERFACE, g_APinDescription[pin].ulPWMChannel, PWM_MAX_DUTY);
 	PWMC_EnableChannel(PWM_INTERFACE, g_APinDescription[pin].ulPWMChannel);
 	PWMC_SetDutyCycle(PWM_INTERFACE, g_APinDescription[pin].ulPWMChannel, dutycycle);
+
+	return 0;
 }
 
 void Boat::SetDutyCycle_Main_Thruster(int duty_Main_Thruster, int dir_Main_Thruster)

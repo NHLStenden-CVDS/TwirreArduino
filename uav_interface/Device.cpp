@@ -251,6 +251,8 @@ uint16_t Device::_GetVariableTypeSize(VariableType type)
 	case VariableType::UI64:
 	case VariableType::D:
 		return 8;
+	default:
+		return 0;
 	}
 }
 
