@@ -14,22 +14,23 @@
 #include <cstring>
 #include <cstdlib>
 
-Sensor42::Sensor42(const char* name) : Device(name, "This sensor is used for testing purposes. It returns the parameter 'value' which is fixed to 42.")
+Sensor42::Sensor42(const char* name) :
+		Device(name, "This sensor is used for testing purposes. It returns the parameter 'value' which is fixed to 42.")
 {
-  _AddVariable("value", &_value);
-  _array = (uint8_t*)malloc(sizeof(uint8_t));
-  _numberOfElements = 1;
-  *_array = 'A';
-  _AddVariable("array", _array, &_numberOfElements);
+	_AddVariable("value", &_value);
+	_array = (uint8_t*) malloc(sizeof(uint8_t));
+	_numberOfElements = 1;
+	*_array = 'A';
+	_AddVariable("array", _array, &_numberOfElements);
 }
 
 void Sensor42::OnRequest()
 {
-  _value = 42;
-  _numberOfElements = rand() % 200 + 1; //from 1 to 200 elements
-  _array = (uint8_t*)realloc(_array, sizeof(uint8_t) * _numberOfElements); //change array to new size
-  for (uint16_t i = 0; i < _numberOfElements; ++i)
-  {
-    _array[i] = rand() % 26 + 65; //random capital letter
-  }
+	_value = 42;
+	_numberOfElements = rand() % 200 + 1;  //from 1 to 200 elements
+	_array = (uint8_t*) realloc(_array, sizeof(uint8_t) * _numberOfElements);  //change array to new size
+	for (uint16_t i = 0; i < _numberOfElements; ++i)
+	{
+		_array[i] = rand() % 26 + 65;  //random capital letter
+	}
 }

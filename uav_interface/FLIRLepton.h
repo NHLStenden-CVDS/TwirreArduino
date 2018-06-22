@@ -21,42 +21,38 @@
 
 #include "Device.h"
 
-
-enum FLIRState {
-  READING, 
-  WAIT,
-  IDLE,     //Just read an image, waiting for next read period
-  CYCLE,
-  CYCLE2,
-  CYCLE3
+enum FLIRState
+{
+	READING, WAIT, IDLE,     //Just read an image, waiting for next read period
+	CYCLE,
+	CYCLE2,
+	CYCLE3
 };
 
-
-
-class FLIRLepton : public Device
+class FLIRLepton: public Device
 {
-  public:
-    FLIRLepton(char *name, int slavePin, int pwrPin);
-    void Update();
-    
-    void print_img();
-    void turnOn();
-    void turnOff();
+public:
+	FLIRLepton(char *name, int slavePin, int pwrPin);
+	void Update();
 
-  private:
-    int lepton_Transfer();
+	void print_img();
+	void turnOn();
+	void turnOff();
 
-    unsigned long _lastOp = 0;
-    uint32_t _errCount = 0;
-    FLIRState _state = READING;
-    
-    uint32_t _imgSize;    
-    uint8_t _width = IMG_WIDTH;
-    uint8_t _height = IMG_HEIGHT;
-    uint16_t _img[IMG_WIDTH*IMG_HEIGHT];
-    uint8_t _frame_packet[PACKET_SIZE];
-    int _slavePin, _pwrPin;
-    bool _powerState;
+private:
+	int lepton_Transfer();
+
+	unsigned long _lastOp = 0;
+	uint32_t _errCount = 0;
+	FLIRState _state = READING;
+
+	uint32_t _imgSize;
+	uint8_t _width = IMG_WIDTH;
+	uint8_t _height = IMG_HEIGHT;
+	uint16_t _img[IMG_WIDTH * IMG_HEIGHT];
+	uint8_t _frame_packet[PACKET_SIZE];
+	int _slavePin, _pwrPin;
+	bool _powerState;
 
 };
 

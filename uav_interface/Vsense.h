@@ -32,22 +32,22 @@
 
 class VSense: public Device
 {
-  public:
-    VSense(const char* name);
-    virtual void OnRequest();
-    
-  private:
-    double _voltage;
+public:
+	VSense(const char* name);
+	virtual void OnRequest();
 
-    double _raw1;
-    double _raw2;
-    double _raw3;
-    double _raw4;
-    
-    double _vcell1;
-    double _vcell2;
-    double _vcell3;
-    double _vcell4;
+private:
+	double _voltage;
+
+	double _raw1;
+	double _raw2;
+	double _raw3;
+	double _raw4;
+
+	double _vcell1;
+	double _vcell2;
+	double _vcell3;
+	double _vcell4;
 };
 
 #endif

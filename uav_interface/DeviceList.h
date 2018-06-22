@@ -17,35 +17,35 @@
 
 class DeviceList
 {
-  public:
-    DeviceList();
-    ~DeviceList();
+public:
+	DeviceList();
+	~DeviceList();
 
-    /**
-     * Adds a device to the list.
-     */
-    void Add(Device* device);
-    
-    /**
-     * Give the length of the list
-     * @return Returns _length, which is a uint8_t.
-     */
-    uint8_t GetLength();
-    
-    /**
-     * Gives a pointer to the device specified with id.
-     * @return Returns a Device pointer.
-     */
-    Device* Get(uint8_t id);
-    
-    /**
-     * Calls the Update() method of every device in the list.
-     */
-    void UpdateAll();
+	/**
+	 * Adds a device to the list.
+	 */
+	void Add(Device* device);
 
-  private:
-    uint8_t _length;
-    Device** _elements;
+	/**
+	 * Give the length of the list
+	 * @return Returns _length, which is a uint8_t.
+	 */
+	uint8_t GetLength();
+
+	/**
+	 * Gives a pointer to the device specified with id.
+	 * @return Returns a Device pointer.
+	 */
+	Device* Get(uint8_t id);
+
+	/**
+	 * Calls the Update() method of every device in the list.
+	 */
+	void UpdateAll();
+
+private:
+	uint8_t _length;
+	Device** _elements;
 };
 
 #endif
