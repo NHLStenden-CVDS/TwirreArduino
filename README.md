@@ -18,6 +18,7 @@ This project contains a project file for [Sloeber, a free and open Arduino IDE b
 * Start Sloeber
 * Ensure Arduino DUE files are available (Arduino > Preferences > Arduino > Platforms and Boards > arduino > Arduino SAM boards... > [select latest version])
 * Load project into Sloeber (File > Import... > General > Existing projects into workspace)
+* Sloeber seems to store the absolute path for the compiler in the project file, which is not updated on importing the project. To fix this, right-click the project, go to "Properties" > "Arduino", and press "Apply & Close". This will update the compiler path for your system.
 * Press 'upload' button (if needed, follow instructions for setting port)
 
 ## License
